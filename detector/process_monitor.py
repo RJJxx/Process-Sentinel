@@ -11,8 +11,10 @@ def get_running_processes():
             process_info = {
                 "pid": process.pid,
                 "name": process.name(),
+                "exe": process.exe(),
                 "username": process.username(),
-                "status": process.status()
+                "status": process.status(),
+                "cmdline": process.cmdline()
             }
 
             processes.append(process_info)

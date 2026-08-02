@@ -3,9 +3,10 @@ from detector.process_analyzer import analyze_process
 
 
 def main():
-    print("=" * 50)
-    print("Keylogger Detector")
-    print("=" * 50)
+
+    print("=" * 60)
+    print("          KEYLOGGER DETECTOR")
+    print("=" * 60)
 
     print("\nScanning running processes...\n")
 
@@ -14,13 +15,43 @@ def main():
 
     print(f"Total Processes Found: {len(processes)}\n")
 
-    # For now, analyze ONLY the first process
-    first_process = processes[0]
+    suspicious_count = 0
 
-    analysis = analyze_process(first_process)
+    # Analyze every process
+    for process in processes:
 
-    print("Analysis Result:\n")
-    print(analysis)
+        analysis = analyze_process(process)
+
+        # Print only if findings exist
+        if analysis["findings"]:
+
+            suspicious_count += 1
+
+            print("=" * 60)
+            print("⚠ Suspicious Process Found")
+            print("=" * 60)
+
+            print(f"Name : {process['name']}")
+            print(f"PID  : {process['pid']}")
+            print(f"User : {process['username']}")
+            print(f"Path : {process['exe']}")
+            print(f"Command Line : {process['cmdline']}")
+           
+            print()
+
+            print("Findings:")
+
+            for finding in analysis["findings"]:
+                print(f"• Rule      : {finding['rule']}")
+                print(f"  Severity : {finding['severity']}")
+                print(f"  Details  : {finding['description']}")
+                print()
+
+    print("=" * 60)
+    print("Scan Complete")
+    print("=" * 60)
+    print(f"Processes Scanned : {len(processes)}")
+    print(f"Suspicious Found  : {suspicious_count}")
 
 
 if __name__ == "__main__":
