@@ -7,6 +7,7 @@ from detector.rules import (
     SUSPICIOUS_POWERSHELL_FLAGS,
     SUSPICIOUS_LOLBINS,
     SUSPICIOUS_LOLBIN_PATTERNS,
+    SUSPICIOUS_COMMAND_PATTERNS,
 )
 
 from difflib import SequenceMatcher
@@ -220,6 +221,47 @@ def check_suspicious_lolbin(process):
 
     return findings
 
+
+def check_suspicious_command_line(process):
+    """
+    Detect suspicious command-line patterns.
+
+    Generates one finding per process and records
+    all suspicious patterns that were detected.
+    """
+
+    findings = []
+
+    cmdline = " ".join(
+        process.get("cmdline", [])
+    ).lower()
+
+    if not cmdline:
+        return findings
+
+    matched_patterns = []
+
+    for pattern in SUSPICIOUS_COMMAND_PATTERNS:
+
+        if pattern.lower() in cmdline:
+            matched_patterns.append(pattern)
+
+    if matched_patterns:
+
+        rule = RULES["KD-007"]
+
+        findings.append({
+            "id": "KD-007",
+            "rule": rule["name"],
+            "severity": rule["severity"],
+            "description": (
+                "Command line contains suspicious pattern(s): "
+                + ", ".join(matched_patterns)
+            )
+        })
+
+    return findings
+
 def analyze_process(process):
     """
     Run every detection module against a process.
@@ -252,7 +294,12 @@ def analyze_process(process):
 
     analysis["findings"].extend(
     check_suspicious_lolbin(process)
+    )
+
+    analysis["findings"].extend(
+    check_suspicious_command_line(process)
 )
+    
 
 
     return analysis

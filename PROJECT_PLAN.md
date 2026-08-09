@@ -23,7 +23,7 @@
 
 - [x] KD-005 Suspicious PowerShell Execution
 - [x] KD-006 Living-off-the-Land Binary Detection
-- [ ] KD-007 Suspicious Command Line
+- [x] KD-007 Suspicious Command Line
 - [ ] KD-008 Living-off-the-Land Binary Detection
 - [ ] KD-009 Network Connection Detection
 - [ ] KD-010 Startup Persistence Detection

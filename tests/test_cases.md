@@ -163,3 +163,70 @@ No KD-006 finding
 Result:
 
 PASS ✅
+
+---
+
+## KD-007
+
+### Rule Name
+
+Suspicious Command-Line Activity
+
+### Category
+
+Behavior Detection
+
+### Severity
+
+Medium
+
+### Description
+
+Detect command-line patterns that may indicate suspicious administrative or system activity.
+
+The rule focuses on specific command patterns rather than flagging normal command-line usage.
+
+### Detection Patterns
+
+- `schtasks /create`
+- `reg add`
+- `net user`
+- `net localgroup`
+
+### Positive Test
+
+Process:
+
+`cmd.exe`
+
+Command Line:
+
+`cmd.exe /c net user`
+
+Expected:
+
+Detector reports:
+
+- Suspicious Command-Line Activity
+
+Status
+
+PASS ✅
+
+### Negative Test
+
+Process:
+
+`cmd.exe`
+
+Command Line:
+
+`cmd.exe /c ipconfig`
+
+Expected:
+
+No KD-007 finding should be generated.
+
+Status
+
+PASS ✅

@@ -41,6 +41,7 @@ The project demonstrates concepts commonly used in Endpoint Detection and Respon
 | KD-004 | Suspicious Parent Process | Behavior Detection | ✅ PASS |
 | KD-005 | Suspicious PowerShell Execution | Behavior Detection | ✅ PASS |
 | KD-006 | Suspicious LOLBin Usage | Behavior Detection | ✅ PASS |
+| KD-007 | Suspicious Command-Line Activity | Behavior Detection | ✅ PASS |
 
 ---
 
@@ -116,7 +117,7 @@ Detection Findings
 
 # Current Version
 
-**v0.7.0**
+**v0.8.0**
 
 ---
 

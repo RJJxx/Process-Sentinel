@@ -4,13 +4,34 @@ All notable changes to this project are documented here.
 
 ---
 
+## v0.8.0
+
+### Added
+
+- KD-007 Suspicious Command-Line Activity
+- Detection of suspicious command-line patterns
+- Positive and negative test cases for KD-007
+
+### Improved
+
+- Reduced duplicate KD-007 findings by combining multiple matched patterns into a single finding
+- Improved false-positive resistance
+- Separated PowerShell-specific detection from general command-line detection
+
+### Testing
+
+- KD-007 positive test PASS ✅
+- KD-007 negative test PASS ✅
+
+---
+
 ## v0.7.0
 
 ### Added
 
 - KD-006 Suspicious LOLBin Usage
-- Detection for suspicious use of legitimate Windows utilities
-- LOLBin detection patterns for certutil.exe, mshta.exe, regsvr32.exe, rundll32.exe, and bitsadmin.exe
+- Detection of suspicious use of legitimate Windows utilities
+- LOLBin detection patterns
 - Positive and negative test cases for KD-006
 
 ### Improved
@@ -22,26 +43,6 @@ All notable changes to this project are documented here.
 
 - KD-006 positive test PASS ✅
 - KD-006 negative test PASS ✅
-
-## v0.6.0
-
-### Added
-
-- KD-005 Suspicious PowerShell Execution
-- Detection of suspicious PowerShell command-line arguments
-- Support for detecting encoded PowerShell execution
-- Unit tests for KD-005
-
-### Improved
-
-- Expanded behavior-based detection capabilities
-- Updated project documentation
-- Updated detection rule documentation
-- Updated test cases
-
-### Testing
-
-- KD-005 PASS ✅
 
 ---
 
@@ -55,9 +56,8 @@ All notable changes to this project are documented here.
 ### Improved
 
 - Parent process collection
-- Centralized rule configuration (RULES)
+- Centralized rule configuration
 - Reduced false positives for Windows system processes
-- Added parent process name collection
 
 ### Testing
 
@@ -73,7 +73,6 @@ All notable changes to this project are documented here.
 - Testing framework
 - Unit tests
 - Fake process generator
-- Documentation for detection modules
 
 ---
 
@@ -87,11 +86,6 @@ All notable changes to this project are documented here.
 ### Improved
 
 - Modular detection architecture
-
-### Testing
-
-- KD-001 PASS ✅
-- KD-002 PASS ✅
 
 ---
 

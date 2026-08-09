@@ -240,3 +240,57 @@ PASS ✅
 ## Status
 
 PASS ✅
+
+---
+
+# KD-007 — Suspicious Command-Line Activity
+
+## Rule ID
+
+KD-007
+
+## Name
+
+Suspicious Command-Line Activity
+
+## Category
+
+Behavior Detection
+
+## Severity
+
+Medium
+
+## Purpose
+
+Detect command-line patterns that may indicate suspicious administrative or system activity.
+
+The rule is designed to avoid flagging normal command-line usage by focusing on specific suspicious patterns.
+
+## Detection Logic
+
+The process command line is converted into a normalized lowercase string.
+
+The detector checks the command line against the configured suspicious command patterns.
+
+Current patterns:
+
+- `schtasks /create`
+- `reg add`
+- `net user`
+- `net localgroup`
+
+If one or more patterns are detected, a single KD-007 finding is generated for the process.
+
+Multiple matching patterns are combined into one finding to avoid duplicate alerts.
+
+## False Positive Consideration
+
+Normal command-line operations should not automatically generate an alert.
+
+For example:
+
+```text
+cmd.exe /c ipconfig
+
+PASS ✅

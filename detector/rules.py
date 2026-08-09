@@ -63,7 +63,16 @@ RULES = {
         "A legitimate Windows utility was executed "
         "with a suspicious usage pattern."
     )
-}
+},
+
+"KD-007": {
+    "name": "Suspicious Command-Line Activity",
+    "severity": "Medium",
+    "description": (
+        "Detected a command-line pattern associated "
+        "with potentially suspicious process activity."
+    )
+},
 
     
 }
@@ -148,3 +157,9 @@ SUSPICIOUS_LOLBIN_PATTERNS = {
     ],
 }
 
+SUSPICIOUS_COMMAND_PATTERNS = [
+    "schtasks /create",
+    "reg add",
+    "net user",
+    "net localgroup",
+]
