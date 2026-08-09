@@ -1,110 +1,53 @@
-# Keylogger Detector
-
-## Project Goal
-
-Develop a lightweight Windows security tool that monitors running processes,
-detects suspicious behavior commonly associated with keyloggers,
-and generates security findings.
-
----
-
-# Current Architecture
-
-Windows
-    ↓
-Process Monitor
-    ↓
-Process Analyzer
-    ↓
-Risk Engine
-    ↓
-Logger
-    ↓
-Report Generator
-    ↓
-GUI
-
----
-
-# Completed Milestones
-
-✅ Project setup
-
-✅ Virtual environment
-
-✅ Git repository
-
-✅ Process monitoring
-
-✅ Process analyzer
-
-✅ Suspicious executable path detection
-
----
-
-# Upcoming Milestones
 # Development Roadmap
+
+---
 
 ## Phase 1 - Foundation ✅
 
-- [x] Project setup
-- [x] Git repository
-- [x] Process monitor
-- [x] Process analyzer
-- [x] Detection rules
-- [x] Testing framework
+- [x] Project Setup
+- [x] Virtual Environment
+- [x] Git Repository
+- [x] Process Monitor
+- [x] Process Analyzer
+- [x] Testing Framework
+- [x] Documentation
 
 ---
 
-## Phase 2 - Detection Rules 🚧
+## Phase 2 - Detection Modules 🚧
 
-- [x] KD-001 Suspicious executable path
-- [x] KD-002 Process name masquerading
-- [ ] KD-003 Missing executable
-- [ ] KD-004 User-writable directory detection
-- [ ] KD-005 Duplicate process detection
-- [ ] KD-006 Suspicious parent process
-- [ ] KD-007 High CPU usage
-- [ ] KD-008 High memory usage
-- [ ] KD-009 Network connection monitoring
-- [ ] KD-010 Startup persistence detection
+- [x] KD-001 Suspicious Executable Location
+- [x] KD-002 Process Masquerading
+- [x] KD-003 Missing Executable Path
+- [x] KD-004 Suspicious Parent Process
+
+- [x] KD-005 Suspicious PowerShell Execution
+- [x] KD-006 Living-off-the-Land Binary Detection
+- [ ] KD-007 Suspicious Command Line
+- [ ] KD-008 Living-off-the-Land Binary Detection
+- [ ] KD-009 Network Connection Detection
+- [ ] KD-010 Startup Persistence Detection
 
 ---
 
-## Phase 3 - Intelligence Engine
+## Phase 3 - Detection Intelligence
 
 - [ ] Risk Engine
-- [ ] Risk scoring
-- [ ] Threat classification
+- [ ] Threat Classification
+- [ ] Confidence Scoring
 
 ---
 
 ## Phase 4 - Reporting
 
-- [ ] JSON reports
-- [ ] Log files
-- [ ] Scan history
+- [ ] JSON Reports
+- [ ] Scan History
+- [ ] Logging
 
 ---
 
 ## Phase 5 - User Interface
 
-- [ ] Console improvements
-- [ ] GUI dashboard
-- [ ] Real-time monitoring
-
-# Detection Rules
-
-Current
-
-- Executable running from Temp
-- Executable running from Downloads
-
-Future
-
-- Unsigned executable
-- Suspicious parent process
-- Startup persistence
-- Hidden executable
-- High CPU usage
-- Active network connection
+- [ ] Console Improvements
+- [ ] GUI Dashboard
+- [ ] Real-Time Monitoring

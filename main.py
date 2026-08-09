@@ -13,6 +13,14 @@ def main():
     # Get all running processes
     processes = get_running_processes()
 
+    print("=" * 60)
+    print("FIRST 5 PROCESSES")
+    print("=" * 60)
+
+    for process in processes[:5]:
+        print(process)
+        print()
+
     print(f"Total Processes Found: {len(processes)}\n")
 
     suspicious_count = 0
