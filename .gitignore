@@ -1,5 +1,17 @@
-venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.venv/
+
+# IDE
+.vscode/
+
+# Logs
 logs/
+
+# Reports
 reports/

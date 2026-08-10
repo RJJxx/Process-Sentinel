@@ -65,7 +65,7 @@ RULES = {
     )
 },
 
-"KD-007": {
+    "KD-007": {
     "name": "Suspicious Command-Line Activity",
     "severity": "Medium",
     "description": (
@@ -74,6 +74,34 @@ RULES = {
     )
 },
 
+    "KD-008": {
+    "name": "Suspicious Network Connection",
+    "severity": "Medium",
+    "description": (
+        "Detects processes making network connections "
+        "to suspicious or unusual remote endpoints."
+    )
+},
+
+    "KD-008": {
+    "name": "Suspicious Network Connection",
+    "severity": "Medium",
+    "description": "Detects potentially suspicious outbound network activity."
+},
+
+"KD-009": {
+    "name": "Suspicious Process and Network Correlation",
+    "severity": "High",
+    "description": (
+        "Detects processes exhibiting both suspicious "
+        "execution location and suspicious network activity."
+    )
+},
+
+"KD-010": {
+    "name": "Suspicious Persistence Location",
+    "severity": "High"
+},
     
 }
 
@@ -162,4 +190,26 @@ SUSPICIOUS_COMMAND_PATTERNS = [
     "reg add",
     "net user",
     "net localgroup",
+]
+
+SUSPICIOUS_NETWORK_PORTS = [
+    4444,
+    1337,
+    31337,
+    6667,
+]
+
+SUSPICIOUS_NETWORK_PORTS = [
+    4444,
+    5555,
+    1337,
+    31337,
+    9001,
+]
+
+SUSPICIOUS_PERSISTENCE_LOCATIONS = [
+    "\\startup\\",
+    "\\start menu\\programs\\startup\\",
+    "\\run\\",
+    "\\runonce\\",
 ]

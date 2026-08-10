@@ -4,19 +4,80 @@ All notable changes to this project are documented here.
 
 ---
 
+## v0.10.0
+
+### Added
+
+- KD-010 Suspicious Persistence Location
+- Detection of suspicious Windows persistence locations
+- Detection based on executable paths
+- Detection based on process command lines
+- KD-010 positive test case
+
+### Improved
+
+- Persistence-related process analysis
+- Detection of suspicious Startup, Run, and RunOnce locations
+
+### Testing
+
+- KD-010 PASS ✅
+
+---
+
+## v0.9.0
+
+### Added
+
+- KD-009 Suspicious Process and Network Correlation
+- Correlation between suspicious executable locations and network activity
+- Detection of established connections to suspicious network ports
+- KD-009 positive test case
+
+### Improved
+
+- Behavioral correlation between process and network indicators
+- Detection confidence through multiple suspicious indicators
+
+### Testing
+
+- KD-009 PASS ✅
+
+---
+
 ## v0.8.0
+
+### Added
+
+- KD-008 Suspicious Network Connection
+- Process network connection collection
+- Detection of suspicious remote network ports
+- KD-008 test case
+
+### Improved
+
+- Process monitoring with network information
+- Network-based detection capabilities
+
+### Testing
+
+- KD-008 PASS ✅
+
+---
+
+## v0.7.0
 
 ### Added
 
 - KD-007 Suspicious Command-Line Activity
 - Detection of suspicious command-line patterns
-- Positive and negative test cases for KD-007
+- Positive KD-007 test case
+- Negative KD-007 test case
 
 ### Improved
 
-- Reduced duplicate KD-007 findings by combining multiple matched patterns into a single finding
+- Reduced duplicate command-line findings
 - Improved false-positive resistance
-- Separated PowerShell-specific detection from general command-line detection
 
 ### Testing
 
@@ -25,19 +86,20 @@ All notable changes to this project are documented here.
 
 ---
 
-## v0.7.0
+## v0.6.0
 
 ### Added
 
 - KD-006 Suspicious LOLBin Usage
-- Detection of suspicious use of legitimate Windows utilities
-- LOLBin detection patterns
-- Positive and negative test cases for KD-006
+- LOLBin detection configuration
+- Suspicious LOLBin command-line patterns
+- Positive KD-006 test case
+- Negative KD-006 test case
 
 ### Improved
 
-- Behavioral detection capabilities
-- False-positive resistance through contextual LOLBin analysis
+- Context-aware LOLBin detection
+- Reduced false positives by checking command-line usage
 
 ### Testing
 
@@ -81,7 +143,7 @@ All notable changes to this project are documented here.
 ### Added
 
 - KD-001 Suspicious Executable Location
-- KD-002 Process Masquerading
+- KD-002 Process Name Masquerading
 
 ### Improved
 

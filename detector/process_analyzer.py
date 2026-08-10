@@ -4,10 +4,12 @@ from detector.rules import (
     SYSTEM_PROCESSES,
     RULES,
     SUSPICIOUS_PARENT_CHILD,
-    SUSPICIOUS_POWERSHELL_FLAGS,
     SUSPICIOUS_LOLBINS,
+    SUSPICIOUS_NETWORK_PORTS,
+    SUSPICIOUS_POWERSHELL_FLAGS,
     SUSPICIOUS_LOLBIN_PATTERNS,
     SUSPICIOUS_COMMAND_PATTERNS,
+    SUSPICIOUS_PERSISTENCE_LOCATIONS,
 )
 
 from difflib import SequenceMatcher
@@ -15,6 +17,7 @@ from difflib import SequenceMatcher
 
 def check_suspicious_path(process):
     """
+    KD-001:
     Detect executables or scripts running from suspicious locations.
     """
 
@@ -58,6 +61,7 @@ def check_suspicious_path(process):
 
 def check_process_name(process):
     """
+    KD-002:
     Detect process names that resemble trusted Windows processes.
     """
 
@@ -93,6 +97,7 @@ def check_process_name(process):
 
 def check_missing_executable(process):
     """
+    KD-003:
     Detect processes that do not expose an executable path.
     Ignore known Windows system processes.
     """
@@ -123,6 +128,7 @@ def check_missing_executable(process):
 
 def check_suspicious_parent(process):
     """
+    KD-004:
     Detect suspicious parent-child process relationships.
     """
 
@@ -154,6 +160,7 @@ def check_suspicious_parent(process):
 
 def check_suspicious_powershell(process):
     """
+    KD-005:
     Detect suspicious PowerShell execution.
     """
 
@@ -164,7 +171,9 @@ def check_suspicious_powershell(process):
     if process_name != "powershell.exe":
         return findings
 
-    cmdline = " ".join(process.get("cmdline", [])).lower()
+    cmdline = " ".join(
+        process.get("cmdline", [])
+    ).lower()
 
     for flag in SUSPICIOUS_POWERSHELL_FLAGS:
 
@@ -186,13 +195,17 @@ def check_suspicious_powershell(process):
 
 def check_suspicious_lolbin(process):
     """
+    KD-006:
     Detect suspicious usage of legitimate Windows LOLBins.
     """
 
     findings = []
 
     process_name = process.get("name", "").lower()
-    cmdline = " ".join(process.get("cmdline", [])).lower()
+
+    cmdline = " ".join(
+        process.get("cmdline", [])
+    ).lower()
 
     # Ignore processes that are not in our LOLBin list
     if process_name not in SUSPICIOUS_LOLBINS:
@@ -224,6 +237,7 @@ def check_suspicious_lolbin(process):
 
 def check_suspicious_command_line(process):
     """
+    KD-007:
     Detect suspicious command-line patterns.
 
     Generates one finding per process and records
@@ -262,6 +276,212 @@ def check_suspicious_command_line(process):
 
     return findings
 
+
+def check_suspicious_network(process):
+    """
+    KD-008:
+    Detect processes making connections to suspicious
+    remote network ports.
+    """
+
+    findings = []
+
+    process_name = process.get("name", "Unknown")
+
+    connections = process.get(
+        "network_connections",
+        []
+    )
+
+    if not connections:
+        return findings
+
+    matched_ports = []
+
+    for connection in connections:
+
+        remote_port = connection.get(
+            "remote_port"
+        )
+
+        remote_ip = connection.get(
+            "remote_ip",
+            ""
+        )
+
+        # Ignore connections without a remote endpoint
+        if not remote_ip or not remote_port:
+            continue
+
+        if remote_port in SUSPICIOUS_NETWORK_PORTS:
+
+            matched_ports.append(
+                f"{remote_ip}:{remote_port}"
+            )
+
+    if matched_ports:
+
+        rule = RULES["KD-008"]
+
+        findings.append({
+            "id": "KD-008",
+            "rule": rule["name"],
+            "severity": rule["severity"],
+            "description": (
+                f"Process '{process_name}' is connected "
+                f"to suspicious network endpoint(s): "
+                f"{', '.join(matched_ports)}."
+            )
+        })
+
+    return findings
+
+
+def check_process_network_correlation(process):
+    """
+    KD-009:
+    Detect processes that combine suspicious execution
+    location with suspicious outbound network activity.
+    """
+
+    findings = []
+
+    exe_path = process.get("exe", "")
+    process_name = process.get("name", "Unknown")
+
+    connections = process.get(
+        "network_connections",
+        []
+    )
+
+    # Check whether the executable is in a suspicious folder
+    suspicious_location = False
+    matched_folder = None
+
+    if exe_path:
+
+        for folder in SUSPICIOUS_FOLDERS:
+
+            if folder.lower() in exe_path.lower():
+
+                suspicious_location = True
+                matched_folder = folder
+
+                break
+
+    if not suspicious_location:
+        return findings
+
+    # Check network connections
+    suspicious_connections = []
+
+    for connection in connections:
+
+        remote_ip = connection.get(
+            "remote_ip",
+            ""
+        )
+
+        remote_port = connection.get(
+            "remote_port"
+        )
+
+        status = connection.get(
+            "status",
+            ""
+        )
+
+        if (
+            remote_ip
+            and remote_port in SUSPICIOUS_NETWORK_PORTS
+            and status.upper() == "ESTABLISHED"
+        ):
+
+            suspicious_connections.append(
+                f"{remote_ip}:{remote_port}"
+            )
+
+    if suspicious_connections:
+
+        rule = RULES["KD-009"]
+
+        findings.append({
+            "id": "KD-009",
+            "rule": rule["name"],
+            "severity": rule["severity"],
+            "description": (
+                f"Process '{process_name}' is running from "
+                f"suspicious location '{matched_folder}' "
+                f"and has an established connection to "
+                f"suspicious endpoint(s): "
+                f"{', '.join(suspicious_connections)}."
+            )
+        })
+
+    return findings
+
+
+def check_suspicious_persistence(process):
+    """
+    KD-010:
+    Detect processes whose executable path or command line
+    references suspicious Windows persistence locations.
+    """
+
+    findings = []
+
+    process_name = process.get(
+        "name",
+        "Unknown"
+    )
+
+    exe_path = process.get(
+        "exe",
+        ""
+    )
+
+    cmdline = " ".join(
+        process.get(
+            "cmdline",
+            []
+        )
+    )
+
+    combined_data = (
+        f"{exe_path} {cmdline}"
+    ).lower()
+
+    if not combined_data.strip():
+        return findings
+
+    matched_locations = []
+
+    for location in SUSPICIOUS_PERSISTENCE_LOCATIONS:
+
+        if location.lower() in combined_data:
+
+            matched_locations.append(
+                location
+            )
+
+    if matched_locations:
+
+        rule = RULES["KD-010"]
+
+        findings.append({
+            "id": "KD-010",
+            "rule": rule["name"],
+            "severity": rule["severity"],
+            "description": (
+                f"Process '{process_name}' references "
+                f"suspicious persistence location(s): "
+                f"{', '.join(matched_locations)}."
+            )
+        })
+
+    return findings
+
+
 def analyze_process(process):
     """
     Run every detection module against a process.
@@ -272,34 +492,54 @@ def analyze_process(process):
         "findings": []
     }
 
+    # KD-001
     analysis["findings"].extend(
         check_suspicious_path(process)
     )
 
+    # KD-002
     analysis["findings"].extend(
         check_process_name(process)
     )
 
+    # KD-003
     analysis["findings"].extend(
         check_missing_executable(process)
     )
 
+    # KD-004
     analysis["findings"].extend(
         check_suspicious_parent(process)
     )
 
+    # KD-005
     analysis["findings"].extend(
-    check_suspicious_powershell(process)
+        check_suspicious_powershell(process)
     )
 
+    # KD-006
     analysis["findings"].extend(
-    check_suspicious_lolbin(process)
+        check_suspicious_lolbin(process)
     )
 
+    # KD-007
     analysis["findings"].extend(
-    check_suspicious_command_line(process)
-)
-    
+        check_suspicious_command_line(process)
+    )
 
+    # KD-008
+    analysis["findings"].extend(
+        check_suspicious_network(process)
+    )
+
+    # KD-009
+    analysis["findings"].extend(
+        check_process_network_correlation(process)
+    )
+
+    # KD-010
+    analysis["findings"].extend(
+        check_suspicious_persistence(process)
+    )
 
     return analysis
