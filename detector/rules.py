@@ -213,3 +213,61 @@ SUSPICIOUS_PERSISTENCE_LOCATIONS = [
     "\\run\\",
     "\\runonce\\",
 ]
+
+# ============================================================
+# RISK SCORING
+# ============================================================
+
+SEVERITY_SCORES = {
+    "Low": 10,
+    "Medium": 20,
+    "High": 30,
+    "Critical": 40,
+}
+
+
+def calculate_risk_score(findings):
+    """
+    Calculate an overall risk score from detection findings.
+
+    Each detection rule contributes according to its severity.
+    Duplicate rule IDs are counted only once.
+    """
+
+    if not findings:
+        return 0
+
+    score = 0
+    processed_rules = set()
+
+    for finding in findings:
+        rule_id = finding.get("id")
+
+        # Prevent duplicate findings from inflating the score
+        if rule_id in processed_rules:
+            continue
+
+        processed_rules.add(rule_id)
+
+        severity = finding.get("severity", "Low")
+        score += SEVERITY_SCORES.get(severity, 0)
+
+    # Maximum score is 100
+    return min(score, 100)
+
+
+def get_risk_level(score):
+    """
+    Convert a numerical risk score into a risk level.
+    """
+
+    if score >= 80:
+        return "Critical"
+
+    if score >= 60:
+        return "High"
+
+    if score >= 30:
+        return "Medium"
+
+    return "Low"

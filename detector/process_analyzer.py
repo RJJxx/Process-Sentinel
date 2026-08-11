@@ -10,6 +10,8 @@ from detector.rules import (
     SUSPICIOUS_LOLBIN_PATTERNS,
     SUSPICIOUS_COMMAND_PATTERNS,
     SUSPICIOUS_PERSISTENCE_LOCATIONS,
+    calculate_risk_score,
+    get_risk_level,
 )
 
 from difflib import SequenceMatcher
@@ -119,7 +121,8 @@ def check_missing_executable(process):
             "rule": rule["name"],
             "severity": rule["severity"],
             "description": (
-                f"Process '{process_name}' does not expose an executable path."
+                f"Process '{process_name}' does not expose "
+                f"an executable path."
             )
         })
 
@@ -186,7 +189,8 @@ def check_suspicious_powershell(process):
                 "rule": rule["name"],
                 "severity": rule["severity"],
                 "description": (
-                    f"PowerShell executed with suspicious flag '{flag}'."
+                    f"PowerShell executed with suspicious flag "
+                    f"'{flag}'."
                 )
             })
 
@@ -482,15 +486,107 @@ def check_suspicious_persistence(process):
     return findings
 
 
+# ============================================================
+# EVIDENCE AND CONFIDENCE
+# ============================================================
+
+def build_evidence(findings):
+    """
+    Build a structured evidence list from detection findings.
+
+    Evidence keeps the original detection information while
+    making it easier for later reporting and investigation.
+    """
+
+    evidence = []
+
+    for finding in findings:
+
+        evidence.append({
+            "id": finding.get("id"),
+            "rule": finding.get("rule"),
+            "severity": finding.get("severity"),
+            "description": finding.get("description")
+        })
+
+    return evidence
+
+
+def calculate_confidence(findings):
+    """
+    Calculate detection confidence based on the available evidence.
+
+    Confidence is intentionally separate from risk level.
+
+    No findings:
+        Low
+
+    One low/medium finding:
+        Medium
+
+    One high-severity finding:
+        High
+
+    Multiple findings:
+        High
+
+    Multiple independent high/medium findings:
+        Very High
+    """
+
+    if not findings:
+        return "Low"
+
+    severities = [
+        str(finding.get("severity", "")).lower()
+        for finding in findings
+    ]
+
+    high_count = severities.count("high")
+    medium_count = severities.count("medium")
+
+    # Multiple independent findings provide stronger evidence.
+    if len(findings) >= 3:
+        return "Very High"
+
+    # Two findings, especially if one is high severity.
+    if len(findings) >= 2 and (
+        high_count >= 1 or medium_count >= 2
+    ):
+        return "Very High"
+
+    # A single high-severity detection.
+    if high_count >= 1:
+        return "High"
+
+    # A single medium-severity detection.
+    if medium_count >= 1:
+        return "Medium"
+
+    return "Low"
+
+
 def analyze_process(process):
     """
     Run every detection module against a process.
+
+    Returns:
+        process
+        findings
+        risk_score
+        risk_level
+        confidence
+        evidence
     """
 
     analysis = {
         "process": process,
         "findings": []
     }
+
+    # ========================================================
+    # DETECTION MODULES
+    # ========================================================
 
     # KD-001
     analysis["findings"].extend(
@@ -540,6 +636,37 @@ def analyze_process(process):
     # KD-010
     analysis["findings"].extend(
         check_suspicious_persistence(process)
+    )
+
+    # ========================================================
+    # RISK SCORING
+    # ========================================================
+
+    risk_score = calculate_risk_score(
+        analysis["findings"]
+    )
+
+    risk_level = get_risk_level(
+        risk_score
+    )
+
+    analysis["risk_score"] = risk_score
+    analysis["risk_level"] = risk_level
+
+    # ========================================================
+    # EVIDENCE
+    # ========================================================
+
+    analysis["evidence"] = build_evidence(
+        analysis["findings"]
+    )
+
+    # ========================================================
+    # CONFIDENCE
+    # ========================================================
+
+    analysis["confidence"] = calculate_confidence(
+        analysis["findings"]
     )
 
     return analysis
