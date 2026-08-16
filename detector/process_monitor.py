@@ -1,5 +1,7 @@
 import psutil
 
+from detector.detection_engine import run_detection_batch
+
 
 def get_running_processes():
     """
@@ -84,3 +86,111 @@ def get_running_processes():
             continue
 
     return processes
+
+
+def analyze_running_processes():
+    """
+    Collect all currently running processes and
+    send them through the detection engine.
+    """
+
+    processes = get_running_processes()
+
+    results = run_detection_batch(processes)
+
+    return results
+
+
+def get_current_alerts():
+    """
+    Collect and analyze running processes, returning
+    only processes that generated an alert.
+    """
+
+    results = analyze_running_processes()
+
+    alerts = [
+        result
+        for result in results
+        if result.get("alert", False)
+    ]
+
+    return alerts
+
+
+if __name__ == "__main__":
+
+    print("=" * 70)
+    print("KEYLOGGER DETECTOR - PROCESS ANALYSIS")
+    print("=" * 70)
+
+    print("\nCollecting running processes...\n")
+
+    results = analyze_running_processes()
+
+    print(f"Processes analyzed: {len(results)}")
+
+    alerts = get_current_alerts()
+
+    print(f"Alerts generated: {len(alerts)}")
+
+    print("\n" + "=" * 70)
+    print("ALERTS")
+    print("=" * 70)
+
+    if not alerts:
+
+        print("\nNo suspicious processes detected.")
+
+    else:
+
+        for alert in alerts:
+
+            process = alert.get(
+                "process",
+                {}
+            )
+
+            print("\n" + "-" * 70)
+
+            print(
+                f"Process : "
+                f"{process.get('name', 'Unknown')}"
+            )
+
+            print(
+                f"PID     : "
+                f"{process.get('pid', 'Unknown')}"
+            )
+
+            print(
+                f"Risk    : "
+                f"{alert.get('risk_score', 0)}"
+            )
+
+            print(
+                f"Level   : "
+                f"{alert.get('risk_level', 'Unknown')}"
+            )
+
+            print(
+                f"Confidence: "
+                f"{alert.get('confidence', 'Unknown')}"
+            )
+
+            print(
+                f"Reason  : "
+                f"{alert.get('alert_reason')}"
+            )
+
+            print("\nEvidence:")
+
+            for evidence in alert.get(
+                "evidence",
+                []
+            ):
+
+                print(
+                    f"  [{evidence.get('id')}] "
+                    f"{evidence.get('description')}"
+                )

@@ -1,66 +1,110 @@
-from detector.process_monitor import get_running_processes
-from detector.process_analyzer import analyze_process
+import threading
 
+from detector.api import app
+from detector.monitor import monitor_processes
+
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+MONITOR_INTERVAL = 10
+
+API_HOST = "127.0.0.1"
+API_PORT = 5000
+
+
+# ============================================================
+# PROCESS MONITOR
+# ============================================================
+
+def start_process_monitor():
+    """
+    Start the continuous process monitoring system.
+    """
+
+    monitor_processes(
+        interval=MONITOR_INTERVAL
+    )
+
+
+# ============================================================
+# MAIN APPLICATION
+# ============================================================
 
 def main():
+    """
+    Start the complete Keylogger Detector application.
 
-    print("=" * 60)
-    print("          KEYLOGGER DETECTOR")
-    print("=" * 60)
+    The process monitor runs in a background thread while
+    Flask serves the API and web dashboard.
+    """
 
-    print("\nScanning running processes...\n")
+    print("=" * 70)
+    print("KEYLOGGER DETECTOR")
+    print("=" * 70)
 
-    # Get all running processes
-    processes = get_running_processes()
+    print("\nStarting application...\n")
 
-    print("=" * 60)
-    print("FIRST 5 PROCESSES")
-    print("=" * 60)
+    # --------------------------------------------------------
+    # Start continuous process monitor
+    # --------------------------------------------------------
 
-    for process in processes[:5]:
-        print(process)
-        print()
+    monitor_thread = threading.Thread(
+        target=start_process_monitor,
+        daemon=True
+    )
 
-    print(f"Total Processes Found: {len(processes)}\n")
+    monitor_thread.start()
 
-    suspicious_count = 0
+    print(
+        "✓ Continuous process monitor started"
+    )
 
-    # Analyze every process
-    for process in processes:
+    # --------------------------------------------------------
+    # Start Flask API + Dashboard
+    # --------------------------------------------------------
 
-        analysis = analyze_process(process)
+    print(
+        f"✓ Web server starting at "
+        f"http://{API_HOST}:{API_PORT}"
+    )
 
-        # Print only if findings exist
-        if analysis["findings"]:
+    print(
+        "\nOpen the dashboard:"
+    )
 
-            suspicious_count += 1
+    print(
+        f"http://{API_HOST}:{API_PORT}/"
+    )
 
-            print("=" * 60)
-            print("⚠ Suspicious Process Found")
-            print("=" * 60)
+    print(
+        "\nPress Ctrl+C to stop the application."
+    )
 
-            print(f"Name : {process['name']}")
-            print(f"PID  : {process['pid']}")
-            print(f"User : {process['username']}")
-            print(f"Path : {process['exe']}")
-            print(f"Command Line : {process['cmdline']}")
-           
-            print()
+    print("=" * 70)
 
-            print("Findings:")
+    try:
 
-            for finding in analysis["findings"]:
-                print(f"• Rule      : {finding['rule']}")
-                print(f"  Severity : {finding['severity']}")
-                print(f"  Details  : {finding['description']}")
-                print()
+        app.run(
+            host=API_HOST,
+            port=API_PORT,
+            debug=False,
+            use_reloader=False
+        )
 
-    print("=" * 60)
-    print("Scan Complete")
-    print("=" * 60)
-    print(f"Processes Scanned : {len(processes)}")
-    print(f"Suspicious Found  : {suspicious_count}")
+    except KeyboardInterrupt:
 
+        print("\nStopping Keylogger Detector...")
+
+    finally:
+
+        print("Application stopped.")
+
+
+# ============================================================
+# ENTRY POINT
+# ============================================================
 
 if __name__ == "__main__":
     main()

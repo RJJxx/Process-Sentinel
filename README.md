@@ -28,7 +28,26 @@ The project demonstrates concepts commonly used in Endpoint Detection and Respon
 - Unit-tested detection modules
 - Structured project documentation
 - Git version control
-
+- Collect process network connections
+- Correlate process and network indicators
+- Detect suspicious Windows persistence locations
+- Risk scoring and risk-level classification
+- Confidence assessment
+- Evidence generation
+- Structured detection event logging
+- Persistent detection history
+- Duplicate detection prevention
+- Flask REST API
+- Interactive web dashboard
+- Recent detection monitoring
+- Live security alerts
+- Process search
+- Detailed process information
+- Network connection details
+- Detection details view
+- Detection investigation workflow
+- Investigation status tracking
+- Investigation status persistence
 ---
 
 # Detection Modules
@@ -42,6 +61,9 @@ The project demonstrates concepts commonly used in Endpoint Detection and Respon
 | KD-005 | Suspicious PowerShell Execution | Behavior Detection | ✅ PASS |
 | KD-006 | Suspicious LOLBin Usage | Behavior Detection | ✅ PASS |
 | KD-007 | Suspicious Command-Line Activity | Behavior Detection | ✅ PASS |
+| KD-008 | Suspicious Network Connection | Network Detection | ✅ PASS |
+| KD-009 | Suspicious Process and Network Correlation | Correlation Detection | ✅ PASS |
+| KD-010 | Suspicious Persistence Location | Persistence Detection | ✅ PASS |
 
 ---
 
@@ -104,6 +126,106 @@ Detection Findings
 ```
 
 ---
+
+---
+
+# Detection Engine
+
+The detection engine acts as the central orchestration layer of the project.
+
+The detection workflow is:
+
+```text
+Running Processes
+        │
+        ▼
+Process Monitor
+        │
+        ▼
+Process Analyzer
+        │
+        ▼
+Detection Engine
+        │
+        ├── KD-001
+        ├── KD-002
+        ├── KD-003
+        ├── KD-004
+        ├── KD-005
+        ├── KD-006
+        ├── KD-007
+        ├── KD-008
+        ├── KD-009
+        └── KD-010
+        │
+        ▼
+Detection Findings
+        │
+        ▼
+Risk Score
+        │
+        ▼
+Risk Level
+        │
+        ▼
+Alert Decision
+        │
+        ▼
+Event Logger
+        │
+        ▼
+Detection History
+
+
+
+---
+
+# Detection Engine
+
+The detection engine acts as the central orchestration layer of the project.
+
+The detection workflow is:
+
+```text
+Running Processes
+        │
+        ▼
+Process Monitor
+        │
+        ▼
+Process Analyzer
+        │
+        ▼
+Detection Engine
+        │
+        ├── KD-001
+        ├── KD-002
+        ├── KD-003
+        ├── KD-004
+        ├── KD-005
+        ├── KD-006
+        ├── KD-007
+        ├── KD-008
+        ├── KD-009
+        └── KD-010
+        │
+        ▼
+Detection Findings
+        │
+        ▼
+Risk Score
+        │
+        ▼
+Risk Level
+        │
+        ▼
+Alert Decision
+        │
+        ▼
+Event Logger
+        │
+        ▼
+Detection History
 
 # Technologies Used
 

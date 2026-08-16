@@ -4,6 +4,70 @@ All notable changes to this project are documented here.
 
 ---
 
+## v0.11.0
+
+### Added
+
+- Detection event investigation workflow
+- Persistent investigation status for detection events
+- New investigation statuses:
+  - New
+  - Investigated
+  - Dismissed
+- Ability to reopen dismissed or investigated events
+- Event lookup by event ID
+- Investigation status tracking with update timestamp
+- Investigation status tracking with updated-by information
+- Investigation statistics
+- API endpoint for retrieving individual detection events
+- API endpoint for marking events as Investigated
+- API endpoint for dismissing events
+- API endpoint for reopening events
+
+### API
+
+Added the following endpoints:
+
+- `GET /api/events/<event_id>`
+- `POST /api/events/<event_id>/investigate`
+- `POST /api/events/<event_id>/dismiss`
+- `POST /api/events/<event_id>/reopen`
+
+### Dashboard
+
+- Added investigation status badges to recent detections
+- Added investigation controls to the detection details view
+- Added Mark as Investigated action
+- Added Dismiss action
+- Added Reopen action
+- Added automatic investigation status refresh
+- Added investigation status styling
+- Added investigation action loading/disabled states
+- Detection details now retrieve the latest event information from the API
+
+### Improved
+
+- Detection event management
+- Detection event persistence
+- Dashboard event synchronization
+- Detection investigation workflow
+- Event status visibility
+- Analyst workflow for reviewing security detections
+
+### Testing
+
+- Detection event retrieval tested
+- Investigation status update tested
+- Investigated status persistence tested
+- Dismissed status tested
+- Reopen functionality tested
+- Dashboard investigation controls tested
+- Investigation status displayed correctly after refresh
+- Investigation API endpoints tested
+- Existing detection and monitoring functionality verified
+
+---
+
 ## v0.10.0
 
 ### Added

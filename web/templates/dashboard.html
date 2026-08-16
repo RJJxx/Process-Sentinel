@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Keylogger Detector</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app">
+
+
+    <!-- =====================================================
+         SIDEBAR
+         ===================================================== -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                🛡
+            </div>
+
+            <div>
+
+                <h1>Keylogger</h1>
+
+                <span>Detector</span>
+
+            </div>
+
+        </div>
+
+
+        <nav>
+
+            <a
+                href="#dashboard"
+                class="nav-item active"
+            >
+                <span>▣</span>
+                Dashboard
+            </a>
+
+
+            <a
+                href="#detections"
+                class="nav-item"
+            >
+                <span>⚠</span>
+                Detections
+            </a>
+
+
+            <a
+                href="#processes"
+                class="nav-item"
+            >
+                <span>◉</span>
+                Processes
+            </a>
+
+
+            <a
+                href="#settings"
+                class="nav-item"
+            >
+                <span>⚙</span>
+                Settings
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-footer">
+
+            <span class="status-dot"></span>
+
+            <span id="sidebar-status">
+                Detector API Online
+            </span>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+         ===================================================== -->
+
+    <main class="main">
+
+
+
+        <!-- =========================================================
+     LIVE SECURITY ALERT
+     ========================================================= -->
+
+<div
+    id="live-alert"
+    class="live-alert hidden"
+>
+
+    <div class="live-alert-icon">
+        ⚠
+    </div>
+
+
+    <div class="live-alert-content">
+
+        <div class="live-alert-title">
+            NEW SECURITY DETECTION
+        </div>
+
+        <div
+            id="live-alert-process"
+            class="live-alert-process"
+        >
+            Suspicious process detected
+        </div>
+
+        <div
+            id="live-alert-details"
+            class="live-alert-details"
+        >
+            Risk: Unknown
+        </div>
+
+    </div>
+
+
+    <button
+        id="live-alert-view"
+        class="live-alert-button"
+        type="button"
+    >
+        View Detection
+    </button>
+
+
+    <button
+        id="live-alert-close"
+        class="live-alert-close"
+        type="button"
+        aria-label="Close alert"
+    >
+        ×
+    </button>
+
+</div>
+
+        <!-- =================================================
+             TOP BAR
+             ================================================= -->
+
+        <header
+            class="topbar"
+            id="dashboard"
+        >
+
+            <div>
+
+                <p class="eyebrow">
+                    SECURITY MONITORING
+                </p>
+
+                <h2>
+                    Dashboard
+                </h2>
+
+            </div>
+
+
+            <div class="system-status">
+
+                <span class="status-dot"></span>
+
+                <span id="system-status">
+                    Checking...
+                </span>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =================================================
+             SUMMARY CARDS
+             ================================================= -->
+
+        <section class="cards">
+
+            <div class="card">
+
+                <div class="card-label">
+                    TOTAL EVENTS
+                </div>
+
+                <div
+                    class="card-value"
+                    id="total-events"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="card high">
+
+                <div class="card-label">
+                    HIGH RISK
+                </div>
+
+                <div
+                    class="card-value"
+                    id="high-events"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="card medium">
+
+                <div class="card-label">
+                    MEDIUM RISK
+                </div>
+
+                <div
+                    class="card-value"
+                    id="medium-events"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="card critical">
+
+                <div class="card-label">
+                    CRITICAL
+                </div>
+
+                <div
+                    class="card-value"
+                    id="critical-events"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             RISK OVERVIEW
+             ================================================= -->
+
+        <section class="panel">
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h3>
+                        Risk Overview
+                    </h3>
+
+                    <p>
+                        Current detection distribution
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="risk-grid">
+
+
+                <div class="risk-item">
+
+                    <span class="risk-name">
+                        Critical
+                    </span>
+
+                    <span
+                        id="risk-critical"
+                        class="risk-number critical-text"
+                    >
+                        0
+                    </span>
+
+                </div>
+
+
+                <div class="risk-item">
+
+                    <span class="risk-name">
+                        High
+                    </span>
+
+                    <span
+                        id="risk-high"
+                        class="risk-number high-text"
+                    >
+                        0
+                    </span>
+
+                </div>
+
+
+                <div class="risk-item">
+
+                    <span class="risk-name">
+                        Medium
+                    </span>
+
+                    <span
+                        id="risk-medium"
+                        class="risk-number medium-text"
+                    >
+                        0
+                    </span>
+
+                </div>
+
+
+                <div class="risk-item">
+
+                    <span class="risk-name">
+                        Low
+                    </span>
+
+                    <span
+                        id="risk-low"
+                        class="risk-number"
+                    >
+                        0
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             RECENT DETECTIONS
+             ================================================= -->
+
+        <section
+            class="panel"
+            id="detections"
+        >
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h3>
+                        Recent Detections
+                    </h3>
+
+                    <p>
+                        Latest security events detected
+                    </p>
+
+                </div>
+
+
+                <button
+                    id="refresh-button"
+                    class="refresh-button"
+                    type="button"
+                >
+                    Refresh
+                </button>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                PROCESS
+                            </th>
+
+                            <th>
+                                RISK
+                            </th>
+
+                            <th>
+                                SCORE
+                            </th>
+
+                            <th>
+                                CONFIDENCE
+                            </th>
+
+                            <th>
+                                TIME
+                            </th>
+
+                            <th>
+                                ACTION
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="detections-table">
+
+                        <tr>
+
+                            <td
+                                colspan="6"
+                                class="empty-state"
+                            >
+                                Loading detections...
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             CURRENT PROCESSES
+             ================================================= -->
+
+        <section
+            class="panel"
+            id="processes"
+        >
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h3>
+                        Current Processes
+                    </h3>
+
+                    <p>
+                        Processes currently running on this system
+                    </p>
+
+                </div>
+
+
+                <div class="process-controls">
+
+                    <span
+                        id="process-count"
+                        class="process-count"
+                    >
+                        0 processes
+                    </span>
+
+
+                    <button
+                        id="process-refresh-button"
+                        class="refresh-button"
+                        type="button"
+                    >
+                        Refresh
+                    </button>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="process-search">
+
+                <input
+                    type="text"
+                    id="process-search-input"
+                    placeholder="Search processes..."
+                    autocomplete="off"
+                >
+
+            </div>
+
+
+
+            <div class="table-container process-table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                PROCESS
+                            </th>
+
+                            <th>
+                                PID
+                            </th>
+
+                            <th>
+                                USER
+                            </th>
+
+                            <th>
+                                STATUS
+                            </th>
+
+                            <th>
+                                NETWORK
+                            </th>
+
+                            <th>
+                                PATH
+                            </th>
+
+                            <th>
+                                ACTION
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="processes-table">
+
+                        <tr>
+
+                            <td
+                                colspan="7"
+                                class="empty-state"
+                            >
+                                Loading processes...
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             FOOTER
+             ================================================= -->
+
+        <footer>
+
+            <span>
+                Keylogger Detector
+            </span>
+
+            <span>
+                •
+            </span>
+
+            <span>
+                Local Security Monitoring
+            </span>
+
+        </footer>
+
+
+    </main>
+
+</div>
+
+
+
+<!-- =========================================================
+     PROCESS DETAILS MODAL
+     ========================================================= -->
+
+<div
+    id="process-modal"
+    class="process-modal hidden"
+>
+
+    <div class="process-modal-overlay"></div>
+
+
+    <div class="process-modal-content">
+
+        <div class="process-modal-header">
+
+            <div>
+
+                <p class="modal-eyebrow">
+                    PROCESS INSPECTION
+                </p>
+
+                <h2 id="modal-process-name">
+                    Process Details
+                </h2>
+
+            </div>
+
+
+            <button
+                id="close-process-modal"
+                class="modal-close-button"
+                type="button"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="process-summary">
+
+            <div class="process-summary-item">
+
+                <span class="summary-label">
+                    PID
+                </span>
+
+                <span
+                    id="modal-pid"
+                    class="summary-value"
+                >
+                    —
+                </span>
+
+            </div>
+
+
+            <div class="process-summary-item">
+
+                <span class="summary-label">
+                    STATUS
+                </span>
+
+                <span
+                    id="modal-status"
+                    class="summary-value status-running"
+                >
+                    —
+                </span>
+
+            </div>
+
+
+            <div class="process-summary-item">
+
+                <span class="summary-label">
+                    USER
+                </span>
+
+                <span
+                    id="modal-user"
+                    class="summary-value"
+                >
+                    —
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-section">
+
+            <h3>
+                Process Information
+            </h3>
+
+
+            <div class="detail-grid">
+
+                <div class="detail-item">
+
+                    <span class="detail-label">
+                        Parent Process
+                    </span>
+
+                    <span
+                        id="modal-parent"
+                        class="detail-value"
+                    >
+                        —
+                    </span>
+
+                </div>
+
+
+                <div class="detail-item">
+
+                    <span class="detail-label">
+                        Network Connections
+                    </span>
+
+                    <span
+                        id="modal-network-count"
+                        class="detail-value"
+                    >
+                        0
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-section">
+
+            <h3>
+                Executable
+            </h3>
+
+            <div class="code-box">
+
+                <code id="modal-exe">
+                    —
+                </code>
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-section">
+
+            <h3>
+                Command Line
+            </h3>
+
+            <div class="code-box">
+
+                <code id="modal-cmdline">
+                    —
+                </code>
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-section">
+
+            <h3>
+                Network Connections
+            </h3>
+
+            <div
+                id="modal-network"
+                class="network-list"
+            >
+
+                <div class="network-empty">
+                    No network connections
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     DETECTION DETAILS MODAL
+     ========================================================= -->
+
+<div
+    id="detection-modal"
+    class="process-modal hidden"
+>
+
+    <div class="process-modal-overlay"></div>
+
+
+    <div class="process-modal-content detection-modal-content">
+
+
+        <div class="process-modal-header">
+
+            <div>
+
+                <p class="modal-eyebrow">
+                    SECURITY DETECTION
+                </p>
+
+                <h2 id="detection-process-name">
+                    Detection Details
+                </h2>
+
+            </div>
+
+
+            <button
+                id="close-detection-modal"
+                class="modal-close-button"
+                type="button"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="process-summary">
+
+            <div class="process-summary-item">
+
+                <span class="summary-label">
+                    RISK LEVEL
+                </span>
+
+                <span
+                    id="detection-risk"
+                    class="summary-value"
+                >
+                    —
+                </span>
+
+            </div>
+
+
+            <div class="process-summary-item">
+
+                <span class="summary-label">
+                    SCORE
+                </span>
+
+                <span
+                    id="detection-score"
+                    class="summary-value"
+                >
+                    —
+                </span>
+
+            </div>
+
+
+            <div class="process-summary-item">
+
+                <span class="summary-label">
+                    CONFIDENCE
+                </span>
+
+                <span
+                    id="detection-confidence"
+                    class="summary-value"
+                >
+                    —
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-section">
+
+            <h3>
+                Detection Information
+            </h3>
+
+
+            <div class="detail-grid">
+
+                <div class="detail-item">
+
+                    <span class="detail-label">
+                        Event ID
+                    </span>
+
+                    <span
+                        id="detection-event-id"
+                        class="detail-value"
+                    >
+                        —
+                    </span>
+
+                </div>
+
+
+                <div class="detail-item">
+
+                    <span class="detail-label">
+                        Timestamp
+                    </span>
+
+                    <span
+                        id="detection-timestamp"
+                        class="detail-value"
+                    >
+                        —
+                    </span>
+
+                </div>
+
+
+                <div class="detail-item">
+
+                    <span class="detail-label">
+                        Process PID
+                    </span>
+
+                    <span
+                        id="detection-pid"
+                        class="detail-value"
+                    >
+                        —
+                    </span>
+
+                </div>
+
+
+                <div class="detail-item">
+
+                    <span class="detail-label">
+                        Username
+                    </span>
+
+                    <span
+                        id="detection-user"
+                        class="detail-value"
+                    >
+                        —
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-section">
+
+            <h3>
+                Alert Reason
+            </h3>
+
+
+            <div class="code-box">
+
+                <code id="detection-alert-reason">
+                    —
+                </code>
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-section">
+
+            <h3>
+                Detection Rules
+            </h3>
+
+
+            <div
+                id="detection-findings"
+                class="detection-findings"
+            >
+
+                <div class="network-empty">
+                    No findings available
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-section">
+
+            <h3>
+                Evidence
+            </h3>
+
+
+            <div
+                id="detection-evidence"
+                class="detection-findings"
+            >
+
+                <div class="network-empty">
+                    No evidence available
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-section">
+
+            <h3>
+                Executable
+            </h3>
+
+
+            <div class="code-box">
+
+                <code id="detection-exe">
+                    —
+                </code>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     JAVASCRIPT
+     ========================================================= -->
+
+<script src="/static/dashboard.js"></script>
+
+
+</body>
+
+</html>
