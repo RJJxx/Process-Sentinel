@@ -4,6 +4,28 @@ All notable changes to this project are documented here.
 
 ---
 
+## v0.12.0
+
+### Documented
+
+- Completed KD-001 through KD-010 detection-rule coverage
+- Process risk scoring and Low, Medium, High, and Critical risk levels
+- Evidence-based confidence calculation
+- Detection-engine alert decisions and alert summaries
+- Continuous process monitoring and alert collection
+- Persistent JSON event logging with duplicate-event protection
+- Detection-event investigation workflow and status management
+- Process-details API security analysis
+- Dashboard security investigation display
+- Dashboard Re-analyze Process functionality
+
+### Documentation
+
+- Updated the project plan and test-case documentation for the completed
+  detection, monitoring, event-investigation, API, and dashboard work
+
+---
+
 ## v0.11.0
 
 ### Added

@@ -408,4 +408,73 @@ PASS ✅
 | KD-008 | Suspicious Network Connection | PASS ✅ |
 | KD-009 | Suspicious Process and Network Correlation | PASS ✅ |
 | KD-010 | Suspicious Persistence Location | PASS ✅ |
+
+---
+
+# Detection Engine and Risk Tests
+
+## Risk Scoring
+
+### Description
+
+Calculate an overall process risk score from unique detection rules and
+map the score to a risk level.
+
+### Tests
+
+- No findings returns score `0` and risk level `Low`.
+- A single Medium finding returns score `20` and risk level `Medium`.
+- A single High finding returns score `30` and risk level `High`.
+- Multiple Medium and High findings can produce a High risk result.
+- Critical findings can produce a Critical risk result.
+- Scores are capped at `100`.
+- Repeated findings with the same rule ID do not increase the score; a
+  single High finding remains `High` risk.
+
+### Status
+
+Implemented; test expectations require alignment 🟡
+
+---
+
+## Detection Engine Alerting
+
+### Description
+
+Run complete process analysis, return findings, evidence, risk score,
+risk level, confidence, alert state, and alert reason.
+
+### Tests
+
+- Suspicious process generates an alert.
+- Alert summary includes process identity, risk score, finding count,
+  and alert state.
+- Batch analysis retains both suspicious and legitimate results.
+- Alert filtering returns only results that generated alerts.
+- Legitimate `svchost.exe`, `explorer.exe`, `services.exe`, normal HTTPS
+  activity, and `ipconfig` command-line activity do not generate alerts.
+
+### Status
+
+PASS ✅
+
+---
+
+## Confidence Calculation
+
+### Description
+
+Calculate confidence separately from risk level using the number and
+severity of findings.
+
+### Expected
+
+- No findings: `Low`
+- One Medium finding: `Medium`
+- One High finding: `High`
+- Multiple corroborating findings: `Very High`
+
+### Status
+
+Implemented ✅
 ````
