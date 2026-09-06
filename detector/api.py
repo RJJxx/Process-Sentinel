@@ -5,12 +5,14 @@ from detector.event_manager import (
     get_recent_events,
     get_detection_statistics,
     get_event,
+    get_latest_event,
     investigate_event,
     dismiss_event,
     reopen_event,
 )
 
 from detector.process_monitor import get_running_processes
+from detector.detection_engine import run_detection
 
 
 # ============================================================
@@ -111,7 +113,6 @@ def api_recent_events():
 
         limit = 10
 
-
     # --------------------------------------------------------
     # Protect API from invalid values
     # --------------------------------------------------------
@@ -120,20 +121,49 @@ def api_recent_events():
 
         limit = 1
 
-
     if limit > 100:
 
         limit = 100
-
 
     events = get_recent_events(
         limit
     )
 
-
     return jsonify({
         "count": len(events),
         "events": events
+    })
+
+
+# ============================================================
+# API: LATEST EVENT
+# ============================================================
+
+@app.route(
+    "/api/events/latest",
+    methods=["GET"]
+)
+def api_latest_event():
+    """
+    Return the most recently stored detection event.
+
+    This endpoint is used by the dashboard to detect
+    newly generated security events without loading
+    the complete detection history.
+    """
+
+    event = get_latest_event()
+
+    if event is None:
+
+        return jsonify({
+            "found": False,
+            "event": None
+        })
+
+    return jsonify({
+        "found": True,
+        "event": event
     })
 
 
@@ -154,7 +184,6 @@ def api_event_details(event_id):
         event_id
     )
 
-
     if event is None:
 
         return jsonify({
@@ -164,7 +193,6 @@ def api_event_details(event_id):
                 "was not found."
             )
         }), 404
-
 
     return jsonify({
         "found": True,
@@ -195,12 +223,10 @@ def api_investigate_event(event_id):
         silent=True
     ) or {}
 
-
     updated_by = data.get(
         "updated_by",
         "analyst"
     )
-
 
     try:
 
@@ -216,7 +242,6 @@ def api_investigate_event(event_id):
             "error": str(error)
         }), 500
 
-
     if event is None:
 
         return jsonify({
@@ -226,7 +251,6 @@ def api_investigate_event(event_id):
                 "was not found."
             )
         }), 404
-
 
     return jsonify({
         "success": True,
@@ -260,12 +284,10 @@ def api_dismiss_event(event_id):
         silent=True
     ) or {}
 
-
     updated_by = data.get(
         "updated_by",
         "analyst"
     )
-
 
     try:
 
@@ -281,7 +303,6 @@ def api_dismiss_event(event_id):
             "error": str(error)
         }), 500
 
-
     if event is None:
 
         return jsonify({
@@ -291,7 +312,6 @@ def api_dismiss_event(event_id):
                 "was not found."
             )
         }), 404
-
 
     return jsonify({
         "success": True,
@@ -325,12 +345,10 @@ def api_reopen_event(event_id):
         silent=True
     ) or {}
 
-
     updated_by = data.get(
         "updated_by",
         "analyst"
     )
-
 
     try:
 
@@ -346,7 +364,6 @@ def api_reopen_event(event_id):
             "error": str(error)
         }), 500
 
-
     if event is None:
 
         return jsonify({
@@ -356,7 +373,6 @@ def api_reopen_event(event_id):
                 "was not found."
             )
         }), 404
-
 
     return jsonify({
         "success": True,
@@ -381,7 +397,6 @@ def api_statistics():
         get_detection_statistics()
     )
 
-
     return jsonify(
         statistics
     )
@@ -401,7 +416,6 @@ def api_processes():
         get_running_processes()
     )
 
-
     return jsonify({
         "count": len(processes),
         "processes": processes
@@ -416,9 +430,17 @@ def api_processes():
     "/api/processes/<int:pid>",
     methods=["GET"]
 )
+# ============================================================
+# API: PROCESS DETAILS
+# ============================================================
+
+@app.route(
+    "/api/processes/<int:pid>",
+    methods=["GET"]
+)
 def api_process_details(pid):
     """
-    Return detailed information
+    Return detailed information and security analysis
     for a specific running process.
     """
 
@@ -426,18 +448,66 @@ def api_process_details(pid):
         get_running_processes()
     )
 
-
     for process in processes:
 
         if process.get(
             "pid"
         ) == pid:
 
+            # ------------------------------------------------
+            # Run the existing detection engine
+            # ------------------------------------------------
+
+            detection = run_detection(
+                process
+            )
+
             return jsonify({
                 "found": True,
-                "process": process
-            })
+                "process": process,
+                "detection": {
+                    "findings":
+                        detection.get(
+                            "findings",
+                            []
+                        ),
 
+                    "risk_score":
+                        detection.get(
+                            "risk_score",
+                            0
+                        ),
+
+                    "risk_level":
+                        detection.get(
+                            "risk_level",
+                            "Low"
+                        ),
+
+                    "confidence":
+                        detection.get(
+                            "confidence",
+                            "Low"
+                        ),
+
+                    "evidence":
+                        detection.get(
+                            "evidence",
+                            []
+                        ),
+
+                    "alert":
+                        detection.get(
+                            "alert",
+                            False
+                        ),
+
+                    "alert_reason":
+                        detection.get(
+                            "alert_reason"
+                        )
+                }
+            })
 
     return jsonify({
         "found": False,
@@ -446,7 +516,6 @@ def api_process_details(pid):
             "was not found."
         )
     }), 404
-
 
 # ============================================================
 # START FLASK SERVER

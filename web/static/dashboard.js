@@ -1,5 +1,5 @@
 // ============================================================
-// KEYLOGGER DETECTOR - DASHBOARD
+// PROCESS SENTINEL - SECURITY DASHBOARD
 // ============================================================
 
 
@@ -11,12 +11,13 @@ let allProcesses = [];
 
 let currentDetectionEvents = [];
 
+let allDetectionEvents = [];
+
 let lastDetectionEventId = null;
 
 let liveAlertDetectionEventId = null;
 
 let currentDetectionEventId = null;
-
 
 // ============================================================
 // API HELPER
@@ -372,97 +373,150 @@ function formatTimestamp(timestamp) {
 
 
 // ============================================================
-// LIVE DETECTION ALERT
+// LIVE DETECTION CHECK
 // ============================================================
 
-function checkForNewDetection(events) {
+async function checkForNewDetection() {
 
-    if (
-        !Array.isArray(events) ||
-        events.length === 0
-    ) {
+    try {
 
-        return;
+        /*
+         * IMPORTANT:
+         *
+         * The backend currently provides:
+         *
+         *     /api/events/recent
+         *
+         * and does not provide:
+         *
+         *     /api/events/latest
+         *
+         * Therefore we request the newest event using
+         * the existing recent-events API.
+         */
 
-    }
-
-    const eventsWithTime =
-        events
-            .map(
-                event => ({
-
-                    event: event,
-
-                    time:
-                        new Date(
-                            event?.timestamp || 0
-                        ).getTime() || 0
-
-                })
-            )
-            .sort(
-                (a, b) =>
-                    b.time - a.time
+        const data =
+            await fetchJSON(
+                "/api/events/recent?limit=1"
             );
 
-    const newest =
-        eventsWithTime[0];
+        const events =
+            data.events || [];
 
-    if (
-        !newest ||
-        !newest.event
-    ) {
+        // ----------------------------------------------------
+        // No events available
+        // ----------------------------------------------------
 
-        return;
+        if (
+            !Array.isArray(events) ||
+            events.length === 0
+        ) {
 
-    }
+            return;
 
-    const newestEvent =
-        newest.event;
+        }
 
-    const newestEventId =
-        newestEvent.event_id;
+        // ----------------------------------------------------
+        // The backend returns the most recent event
+        // ----------------------------------------------------
 
-    if (!newestEventId) {
+        const newestEvent =
+            events[events.length - 1];
 
-        return;
+        if (!newestEvent) {
 
-    }
+            return;
 
-    if (
-        lastDetectionEventId === null
-    ) {
+        }
+
+        const newestEventId =
+            newestEvent.event_id;
+
+        if (!newestEventId) {
+
+            return;
+
+        }
+
+        // ----------------------------------------------------
+        // First dashboard load
+        //
+        // Establish the current event as the baseline.
+        //
+        // Existing events should NOT trigger a live alert
+        // when the dashboard is first opened.
+        // ----------------------------------------------------
+
+        if (
+            lastDetectionEventId === null
+        ) {
+
+            lastDetectionEventId =
+                newestEventId;
+
+            console.log(
+                "Live detection baseline established:",
+                newestEventId
+            );
+
+            return;
+
+        }
+
+        // ----------------------------------------------------
+        // Same event
+        //
+        // Do nothing.
+        // ----------------------------------------------------
+
+        if (
+            newestEventId ===
+            lastDetectionEventId
+        ) {
+
+            return;
+
+        }
+
+        // ----------------------------------------------------
+        // NEW SECURITY EVENT
+        // ----------------------------------------------------
+
+        console.log(
+            "🚨 NEW SECURITY DETECTION:",
+            newestEvent
+        );
 
         lastDetectionEventId =
             newestEventId;
 
-        return;
+        liveAlertDetectionEventId =
+            newestEventId;
+
+        // ----------------------------------------------------
+        // Display live alert
+        // ----------------------------------------------------
+
+        showLiveDetectionAlert(
+            newestEvent
+        );
+
+        // ----------------------------------------------------
+        // Refresh dashboard information
+        // ----------------------------------------------------
+
+        await updateRecentDetections();
+
+        await updateStatistics();
+
+    } catch (error) {
+
+        console.error(
+            "Live detection check error:",
+            error
+        );
 
     }
-
-    if (
-        newestEventId ===
-        lastDetectionEventId
-    ) {
-
-        return;
-
-    }
-
-    console.log(
-        "🚨 NEW SECURITY DETECTION:",
-        newestEvent
-    );
-
-    lastDetectionEventId =
-        newestEventId;
-
-    liveAlertDetectionEventId =
-        newestEventId;
-
-    showLiveDetectionAlert(
-        newestEvent
-    );
 }
 
 
@@ -602,12 +656,19 @@ function setupLiveAlert() {
     const closeButton =
         document.getElementById(
             "live-alert-close"
+
+            
         );
 
     const viewButton =
         document.getElementById(
             "live-alert-view"
         );
+
+
+    // --------------------------------------------------------
+    // Close live alert
+    // --------------------------------------------------------
 
     if (closeButton) {
 
@@ -618,6 +679,11 @@ function setupLiveAlert() {
 
     }
 
+
+    // --------------------------------------------------------
+    // View detection
+    // --------------------------------------------------------
+
     if (viewButton) {
 
         viewButton.addEventListener(
@@ -626,6 +692,30 @@ function setupLiveAlert() {
         );
 
     }
+
+
+    // --------------------------------------------------------
+    // Establish the initial baseline
+    // --------------------------------------------------------
+    //
+    // Existing events should NOT trigger an alert when the
+    // dashboard first loads.
+    //
+    // checkForNewDetection() handles this automatically.
+    // --------------------------------------------------------
+
+    checkForNewDetection();
+
+
+    // --------------------------------------------------------
+    // Check for new detections every 5 seconds
+    // --------------------------------------------------------
+
+    setInterval(
+        checkForNewDetection,
+        5000
+    );
+
 }
 
 
@@ -658,10 +748,6 @@ async function updateRecentDetections() {
 
         currentDetectionEvents =
             events;
-
-        checkForNewDetection(
-            events
-        );
 
         if (
             events.length === 0
@@ -796,7 +882,720 @@ async function updateRecentDetections() {
     }
 }
 
+// ============================================================
+// ALL SECURITY DETECTIONS
+// ============================================================
 
+async function updateAllDetections() {
+
+    const table =
+        document.getElementById(
+            "all-detections-table"
+        );
+
+    if (!table) {
+
+        return;
+
+    }
+
+    try {
+
+        const data =
+            await fetchJSON(
+                "/api/events"
+            );
+
+        allDetectionEvents =
+            data.events || [];
+
+        renderAllDetections();
+
+    } catch (error) {
+
+        console.error(
+            "All detections loading error:",
+            error
+        );
+
+        table.innerHTML = `
+            <tr>
+
+                <td
+                    colspan="7"
+                    class="empty-state"
+                >
+                    Unable to load detection history.
+                </td>
+
+            </tr>
+        `;
+
+    }
+}
+
+
+// ============================================================
+// FILTER ALL DETECTIONS
+// ============================================================
+
+function filterAllDetections() {
+
+    const riskFilter =
+        document.getElementById(
+            "detection-risk-filter"
+        );
+
+    const statusFilter =
+        document.getElementById(
+            "detection-status-filter"
+        );
+
+    const searchInput =
+        document.getElementById(
+            "detection-search-input"
+        );
+
+    const selectedRisk =
+        riskFilter
+            ? riskFilter.value
+            : "all";
+
+    const selectedStatus =
+        statusFilter
+            ? statusFilter.value
+            : "all";
+
+    const search =
+        searchInput
+            ? searchInput.value
+                .trim()
+                .toLowerCase()
+            : "";
+
+    const filtered =
+        allDetectionEvents.filter(
+            event => {
+
+                const risk =
+                    event?.risk || {};
+
+                const process =
+                    event?.process || {};
+
+                const riskLevel =
+                    risk.level ||
+                    "Unknown";
+
+                const status =
+                    getInvestigationStatus(
+                        event
+                    );
+
+                const processName =
+                    String(
+                        process.name ||
+                        ""
+                    ).toLowerCase();
+
+                const eventId =
+                    String(
+                        event.event_id ||
+                        ""
+                    ).toLowerCase();
+
+                // ------------------------------------------------
+                // Risk filter
+                // ------------------------------------------------
+
+                if (
+                    selectedRisk !== "all" &&
+                    riskLevel !== selectedRisk
+                ) {
+
+                    return false;
+
+                }
+
+                // ------------------------------------------------
+                // Investigation status filter
+                // ------------------------------------------------
+
+                if (
+                    selectedStatus !== "all" &&
+                    status !== selectedStatus
+                ) {
+
+                    return false;
+
+                }
+
+                // ------------------------------------------------
+                // Search filter
+                // ------------------------------------------------
+
+                if (
+                    search &&
+                    !processName.includes(search) &&
+                    !eventId.includes(search)
+                ) {
+
+                    return false;
+
+                }
+
+                return true;
+
+            }
+        );
+
+    return filtered;
+}
+
+
+// ============================================================
+// RENDER ALL DETECTIONS
+// ============================================================
+
+function renderAllDetections() {
+
+    const table =
+        document.getElementById(
+            "all-detections-table"
+        );
+
+    const countElement =
+        document.getElementById(
+            "all-detections-count"
+        );
+
+    if (!table) {
+
+        return;
+
+    }
+
+    const filtered =
+        filterAllDetections();
+
+    if (countElement) {
+
+        countElement.textContent =
+            filtered.length;
+
+    }
+
+    if (
+        filtered.length === 0
+    ) {
+
+        table.innerHTML = `
+            <tr>
+
+                <td
+                    colspan="7"
+                    class="empty-state"
+                >
+                    No detections match the selected filters.
+                </td>
+
+            </tr>
+        `;
+
+        return;
+
+    }
+
+    table.innerHTML =
+        filtered
+            .map(
+                event => {
+
+                    const process =
+                        event.process || {};
+
+                    const risk =
+                        event.risk || {};
+
+                    const eventId =
+                        event.event_id ||
+                        "Unknown";
+
+                    const riskLevel =
+                        risk.level ||
+                        "Unknown";
+
+                    const score =
+                        risk.score ??
+                        0;
+
+                    return `
+                        <tr
+                            class="detection-row"
+                        >
+
+                            <td>
+
+                                <strong>
+                                    ${escapeHTML(
+                                        process.name ||
+                                        "Unknown"
+                                    )}
+                                </strong>
+
+                            </td>
+
+                            <td>
+
+                                <span
+                                    class="event-id"
+                                    title="${escapeHTML(
+                                        eventId
+                                    )}"
+                                >
+                                    ${escapeHTML(
+                                        eventId
+                                    )}
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                ${createRiskBadge(
+                                    riskLevel
+                                )}
+
+                            </td>
+
+                            <td>
+
+                                ${escapeHTML(
+                                    score
+                                )}
+
+                            </td>
+
+                            <td>
+
+                                ${createInvestigationBadge(
+                                    event
+                                )}
+
+                            </td>
+
+                            <td>
+
+                                ${escapeHTML(
+                                    formatTimestamp(
+                                        event.timestamp
+                                    )
+                                )}
+
+                            </td>
+
+                            <td>
+
+                                <button
+                                    type="button"
+                                    class="view-detection-button"
+                                    onclick="viewAllDetectionById('${escapeHTML(
+                                        eventId
+                                    )}')"
+                                >
+                                    View
+                                </button>
+
+                            </td>
+
+                        </tr>
+                    `;
+
+                }
+            )
+            .join("");
+
+}
+
+
+// ============================================================
+// VIEW DETECTION FROM ALL EVENTS
+// ============================================================
+
+function viewAllDetectionById(
+    eventId
+) {
+
+    const index =
+        currentDetectionEvents.findIndex(
+            event =>
+                event &&
+                event.event_id ===
+                eventId
+        );
+
+    if (index !== -1) {
+
+        viewDetectionDetails(
+            index
+        );
+
+        return;
+
+    }
+
+    const event =
+        allDetectionEvents.find(
+            item =>
+                item &&
+                item.event_id ===
+                eventId
+        );
+
+    if (!event) {
+
+        console.error(
+            "Detection event not found:",
+            eventId
+        );
+
+        return;
+
+    }
+
+    currentDetectionEventId =
+        eventId;
+
+    loadDetectionEventById(
+        eventId
+    );
+
+}
+
+
+// ============================================================
+// LOAD DETECTION EVENT BY ID
+// ============================================================
+
+async function loadDetectionEventById(
+    eventId
+) {
+
+    try {
+
+        const data =
+            await fetchJSON(
+                `/api/events/${encodeURIComponent(
+                    eventId
+                )}`
+            );
+
+        if (
+            !data.found ||
+            !data.event
+        ) {
+
+            alert(
+                data.error ||
+                "Detection event could not be found."
+            );
+
+            return;
+
+        }
+
+        const event =
+            data.event;
+
+        currentDetectionEventId =
+            eventId;
+
+        const existingIndex =
+            currentDetectionEvents.findIndex(
+                item =>
+                    item &&
+                    item.event_id ===
+                    eventId
+            );
+
+        if (
+            existingIndex === -1
+        ) {
+
+            currentDetectionEvents.push(
+                event
+            );
+
+        } else {
+
+            currentDetectionEvents[
+                existingIndex
+            ] =
+                event;
+
+        }
+
+        await displayDetectionEvent(
+            event
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Detection details error:",
+            error
+        );
+
+        alert(
+            "Unable to load detection details."
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// DISPLAY DETECTION EVENT
+// ============================================================
+
+async function displayDetectionEvent(
+    event
+) {
+
+    const process =
+        event.process || {};
+
+    const risk =
+        event.risk || {};
+
+    const findings =
+        event.findings || [];
+
+    const evidence =
+        event.evidence || [];
+
+    const processName =
+        document.getElementById(
+            "detection-process-name"
+        );
+
+    const detectionRisk =
+        document.getElementById(
+            "detection-risk"
+        );
+
+    const detectionScore =
+        document.getElementById(
+            "detection-score"
+        );
+
+    const detectionConfidence =
+        document.getElementById(
+            "detection-confidence"
+        );
+
+    const detectionEventId =
+        document.getElementById(
+            "detection-event-id"
+        );
+
+    const detectionTimestamp =
+        document.getElementById(
+            "detection-timestamp"
+        );
+
+    const detectionPid =
+        document.getElementById(
+            "detection-pid"
+        );
+
+    const detectionUser =
+        document.getElementById(
+            "detection-user"
+        );
+
+    const detectionAlertReason =
+        document.getElementById(
+            "detection-alert-reason"
+        );
+
+    const detectionExe =
+        document.getElementById(
+            "detection-exe"
+        );
+
+    if (processName) {
+
+        processName.textContent =
+            process.name ||
+            "Unknown Process";
+
+    }
+
+    if (detectionRisk) {
+
+        detectionRisk.textContent =
+            risk.level ||
+            "Unknown";
+
+    }
+
+    if (detectionScore) {
+
+        detectionScore.textContent =
+            risk.score ??
+            "—";
+
+    }
+
+    if (detectionConfidence) {
+
+        detectionConfidence.textContent =
+            risk.confidence ||
+            "Unknown";
+
+    }
+
+    if (detectionEventId) {
+
+        detectionEventId.textContent =
+            event.event_id ||
+            "—";
+
+    }
+
+    if (detectionTimestamp) {
+
+        detectionTimestamp.textContent =
+            formatTimestamp(
+                event.timestamp
+            );
+
+    }
+
+    if (detectionPid) {
+
+        detectionPid.textContent =
+            process.pid ??
+            "—";
+
+    }
+
+    if (detectionUser) {
+
+        detectionUser.textContent =
+            process.username ||
+            "—";
+
+    }
+
+    if (detectionAlertReason) {
+
+        detectionAlertReason.textContent =
+            event.alert_reason ||
+            "No alert reason available.";
+
+    }
+
+    if (detectionExe) {
+
+        detectionExe.textContent =
+            process.exe ||
+            "Not available";
+
+    }
+
+    renderDetectionFindings(
+        "detection-findings",
+        findings
+    );
+
+    renderDetectionFindings(
+        "detection-evidence",
+        evidence
+    );
+
+
+    // --------------------------------------------------------
+    // Risk styling
+    // --------------------------------------------------------
+
+    if (detectionRisk) {
+
+        detectionRisk.classList.remove(
+            "detection-risk-high",
+            "detection-risk-medium",
+            "detection-risk-critical",
+            "detection-risk-low"
+        );
+
+        const riskLevel =
+            String(
+                risk.level || ""
+            ).toLowerCase();
+
+        if (
+            riskLevel === "high"
+        ) {
+
+            detectionRisk.classList.add(
+                "detection-risk-high"
+            );
+
+        } else if (
+            riskLevel === "medium"
+        ) {
+
+            detectionRisk.classList.add(
+                "detection-risk-medium"
+            );
+
+        } else if (
+            riskLevel === "critical"
+        ) {
+
+            detectionRisk.classList.add(
+                "detection-risk-critical"
+            );
+
+        } else if (
+            riskLevel === "low"
+        ) {
+
+            detectionRisk.classList.add(
+                "detection-risk-low"
+            );
+
+        }
+
+    }
+
+
+    // --------------------------------------------------------
+    // Investigation UI
+    // --------------------------------------------------------
+
+    ensureInvestigationUI();
+
+    renderInvestigationStatus(
+        event
+    );
+
+    const modal =
+        document.getElementById(
+            "detection-modal"
+        );
+
+    if (modal) {
+
+        modal.classList.remove(
+            "hidden"
+        );
+
+    }
+
+}
 // ============================================================
 // CURRENT PROCESSES
 // ============================================================
@@ -1143,11 +1942,18 @@ async function viewProcessDetails(pid) {
         }
 
         const process =
-            data.process;
+            data.process || {};
+
+        const detection =
+            data.detection || {};
 
         const networkConnections =
             process.network_connections ||
             [];
+
+        // ====================================================
+        // PROCESS INFORMATION
+        // ====================================================
 
         const modalProcessName =
             document.getElementById(
@@ -1189,6 +1995,7 @@ async function viewProcessDetails(pid) {
                 "modal-cmdline"
             );
 
+
         if (modalProcessName) {
 
             modalProcessName.textContent =
@@ -1196,6 +2003,7 @@ async function viewProcessDetails(pid) {
                 "Unknown Process";
 
         }
+
 
         if (modalPid) {
 
@@ -1205,6 +2013,7 @@ async function viewProcessDetails(pid) {
 
         }
 
+
         if (modalStatus) {
 
             modalStatus.textContent =
@@ -1212,6 +2021,7 @@ async function viewProcessDetails(pid) {
                 "Unknown";
 
         }
+
 
         if (modalUser) {
 
@@ -1221,6 +2031,7 @@ async function viewProcessDetails(pid) {
 
         }
 
+
         if (modalParent) {
 
             modalParent.textContent =
@@ -1229,12 +2040,14 @@ async function viewProcessDetails(pid) {
 
         }
 
+
         if (modalNetworkCount) {
 
             modalNetworkCount.textContent =
                 networkConnections.length;
 
         }
+
 
         if (modalExe) {
 
@@ -1244,9 +2057,11 @@ async function viewProcessDetails(pid) {
 
         }
 
+
         const commandLine =
             process.cmdline ||
             [];
+
 
         if (modalCmdline) {
 
@@ -1257,9 +2072,217 @@ async function viewProcessDetails(pid) {
 
         }
 
+
+        // ====================================================
+        // NETWORK CONNECTIONS
+        // ====================================================
+
         renderProcessNetworkConnections(
             networkConnections
         );
+
+
+        // ====================================================
+        // SECURITY INVESTIGATION
+        // ====================================================
+
+        const modalRiskLevel =
+            document.getElementById(
+                "modal-risk-level"
+            );
+
+        const modalRiskScore =
+            document.getElementById(
+                "modal-risk-score"
+            );
+
+        const modalRiskConfidence =
+            document.getElementById(
+                "modal-risk-confidence"
+            );
+
+        const modalAlert =
+            document.getElementById(
+                "modal-alert"
+            );
+
+        const modalFindings =
+            document.getElementById(
+                "modal-findings"
+            );
+
+        const modalEvidence =
+            document.getElementById(
+                "modal-evidence"
+            );
+
+        const modalAlertReason =
+            document.getElementById(
+                "modal-alert-reason"
+            );
+
+
+        const riskLevel =
+            detection.risk_level ||
+            "Low";
+
+        const riskScore =
+            detection.risk_score ??
+            0;
+
+        const confidence =
+            detection.confidence ||
+            "Low";
+
+        const alert =
+            Boolean(
+                detection.alert
+            );
+
+        const findings =
+            detection.findings ||
+            [];
+
+        const evidence =
+            detection.evidence ||
+            [];
+
+        const alertReason =
+            detection.alert_reason ||
+            "No alert reason available.";
+
+
+        // ----------------------------------------------------
+        // Risk level
+        // ----------------------------------------------------
+
+        if (modalRiskLevel) {
+
+            modalRiskLevel.textContent =
+                riskLevel;
+
+            modalRiskLevel.classList.remove(
+                "detection-risk-low",
+                "detection-risk-medium",
+                "detection-risk-high",
+                "detection-risk-critical"
+            );
+
+            const normalizedRisk =
+                String(
+                    riskLevel
+                ).toLowerCase();
+
+            if (
+                normalizedRisk === "low"
+            ) {
+
+                modalRiskLevel.classList.add(
+                    "detection-risk-low"
+                );
+
+            } else if (
+                normalizedRisk === "medium"
+            ) {
+
+                modalRiskLevel.classList.add(
+                    "detection-risk-medium"
+                );
+
+            } else if (
+                normalizedRisk === "high"
+            ) {
+
+                modalRiskLevel.classList.add(
+                    "detection-risk-high"
+                );
+
+            } else if (
+                normalizedRisk === "critical"
+            ) {
+
+                modalRiskLevel.classList.add(
+                    "detection-risk-critical"
+                );
+
+            }
+
+        }
+
+
+        // ----------------------------------------------------
+        // Risk score
+        // ----------------------------------------------------
+
+        if (modalRiskScore) {
+
+            modalRiskScore.textContent =
+                riskScore;
+
+        }
+
+
+        // ----------------------------------------------------
+        // Confidence
+        // ----------------------------------------------------
+
+        if (modalRiskConfidence) {
+
+            modalRiskConfidence.textContent =
+                confidence;
+
+        }
+
+
+        // ----------------------------------------------------
+        // Alert status
+        // ----------------------------------------------------
+
+        if (modalAlert) {
+
+            modalAlert.textContent =
+                alert
+                    ? "Yes"
+                    : "No";
+
+        }
+
+
+        // ----------------------------------------------------
+        // Detection findings
+        // ----------------------------------------------------
+
+        renderDetectionFindings(
+            "modal-findings",
+            findings
+        );
+
+
+        // ----------------------------------------------------
+        // Evidence
+        // ----------------------------------------------------
+
+        renderDetectionFindings(
+            "modal-evidence",
+            evidence
+        );
+
+
+        // ----------------------------------------------------
+        // Alert reason
+        // ----------------------------------------------------
+
+        if (modalAlertReason) {
+
+            modalAlertReason.textContent =
+                alertReason;
+
+        }
+
+
+        // ====================================================
+        // DISPLAY MODAL
+        // ====================================================
 
         modal.classList.remove(
             "hidden"
@@ -1278,8 +2301,105 @@ async function viewProcessDetails(pid) {
 
     }
 }
+// ============================================================
+// REFRESH & RE-ANALYZE CURRENT PROCESS
+// ============================================================
 
+async function refreshProcessInvestigation() {
 
+    const pidElement =
+        document.getElementById(
+            "modal-pid"
+        );
+
+    const refreshButton =
+        document.getElementById(
+            "refresh-process-investigation"
+        );
+
+    if (!pidElement) {
+
+        return;
+
+    }
+
+    const pid =
+        pidElement.textContent.trim();
+
+    if (
+        !pid ||
+        pid === "Unknown" ||
+        pid === "—"
+    ) {
+
+        alert(
+            "No valid process PID is available."
+        );
+
+        return;
+
+    }
+
+    if (refreshButton) {
+
+        refreshButton.disabled =
+            true;
+
+        refreshButton.textContent =
+            "Refreshing...";
+
+    }
+
+    try {
+
+        // ----------------------------------------------------
+        // Reuse the existing Process Details loader.
+        //
+        // This refreshes:
+        // - Process information
+        // - Status
+        // - Parent process
+        // - Executable
+        // - Command line
+        // - Network connections
+        // - Detection analysis
+        // ----------------------------------------------------
+
+        await viewProcessDetails(
+            Number(pid)
+        );
+
+        console.log(
+            "Process details and investigation refreshed:",
+            pid
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Process refresh error:",
+            error
+        );
+
+        alert(
+            error.message ||
+            "Unable to refresh process details."
+        );
+
+    } finally {
+
+        if (refreshButton) {
+
+            refreshButton.disabled =
+                false;
+
+            refreshButton.textContent =
+                "Re-analyze Process";
+
+        }
+
+    }
+}
 // ============================================================
 // PROCESS NETWORK CONNECTIONS
 // ============================================================
@@ -1446,13 +2566,11 @@ function ensureInvestigationUI() {
 
         </div>
 
-
         <div
             id="detection-investigation-actions"
             class="investigation-actions"
         >
         </div>
-
     `;
 
     const existingContent =
@@ -1740,8 +2858,6 @@ async function updateEventInvestigation(
         const updatedEvent =
             data.event;
 
-        // Update local event list.
-
         const localIndex =
             currentDetectionEvents.findIndex(
                 event =>
@@ -1765,17 +2881,10 @@ async function updateEventInvestigation(
             updatedEvent
         );
 
-        // Refresh the table so the badge changes.
-
         await updateRecentDetections();
-
-        // Restore the selected event ID.
 
         currentDetectionEventId =
             eventId;
-
-        // Refresh modal status from the
-        // updated event.
 
         renderInvestigationStatus(
             updatedEvent
@@ -1875,11 +2984,6 @@ async function viewDetectionDetails(index) {
     currentDetectionEventId =
         eventId;
 
-    // --------------------------------------------------------
-    // Fetch the latest version from the API.
-    // This ensures we get the current investigation status.
-    // --------------------------------------------------------
-
     try {
 
         const data =
@@ -1925,8 +3029,6 @@ async function viewDetectionDetails(index) {
             error
         );
 
-        // Continue using the event already
-        // loaded in the dashboard.
     }
 
     const process =
@@ -2082,6 +3184,7 @@ async function viewDetectionDetails(index) {
         evidence
     );
 
+
     // --------------------------------------------------------
     // Risk styling
     // --------------------------------------------------------
@@ -2135,6 +3238,7 @@ async function viewDetectionDetails(index) {
         }
 
     }
+
 
     // --------------------------------------------------------
     // Investigation section
@@ -2292,6 +3396,13 @@ function setupProcessModal() {
             "close-process-modal"
         );
 
+        
+
+        const refreshInvestigationButton =
+        document.getElementById(
+            "refresh-process-investigation"
+        );
+
     if (
         !modal ||
         !closeButton
@@ -2318,6 +3429,15 @@ function setupProcessModal() {
         "click",
         closeModal
     );
+
+    if (refreshInvestigationButton) {
+
+        refreshInvestigationButton.addEventListener(
+            "click",
+            refreshProcessInvestigation
+        );
+
+    }
 
     if (overlay) {
 
@@ -2486,7 +3606,11 @@ async function updateDashboard() {
 
         updateRecentDetections(),
 
-        updateProcesses()
+        updateAllDetections(),
+
+        updateProcesses(),
+
+        checkForNewDetection()
 
     ]);
 
@@ -2538,7 +3662,7 @@ function setupKeyboardControls(
 // INITIALIZE DASHBOARD
 // ============================================================
 
-document.addEventListener(
+    document.addEventListener(
     "DOMContentLoaded",
     () => {
 
@@ -2575,6 +3699,99 @@ document.addEventListener(
         // ----------------------------------------------------
 
         ensureInvestigationUI();
+
+
+        // ----------------------------------------------------
+        // All detection filters
+        // ----------------------------------------------------
+
+        const detectionRiskFilter =
+            document.getElementById(
+                "detection-risk-filter"
+            );
+
+        const detectionStatusFilter =
+            document.getElementById(
+                "detection-status-filter"
+            );
+
+        const detectionSearchInput =
+            document.getElementById(
+                "detection-search-input"
+            );
+
+
+        if (detectionRiskFilter) {
+
+            detectionRiskFilter.addEventListener(
+                "change",
+                renderAllDetections
+            );
+
+        }
+
+
+        if (detectionStatusFilter) {
+
+            detectionStatusFilter.addEventListener(
+                "change",
+                renderAllDetections
+            );
+
+        }
+
+
+        if (detectionSearchInput) {
+
+            detectionSearchInput.addEventListener(
+                "input",
+                renderAllDetections
+            );
+
+        }
+
+
+        // ----------------------------------------------------
+        // All detections refresh button
+        // ----------------------------------------------------
+
+        const allDetectionsRefreshButton =
+            document.getElementById(
+                "all-detections-refresh-button"
+            );
+
+
+        if (allDetectionsRefreshButton) {
+
+            allDetectionsRefreshButton.addEventListener(
+                "click",
+                async () => {
+
+                    allDetectionsRefreshButton.disabled =
+                        true;
+
+                    allDetectionsRefreshButton.textContent =
+                        "Refreshing...";
+
+
+                    try {
+
+                        await updateAllDetections();
+
+                    } finally {
+
+                        allDetectionsRefreshButton.disabled =
+                            false;
+
+                        allDetectionsRefreshButton.textContent =
+                            "Refresh";
+
+                    }
+
+                }
+            );
+
+        }
 
 
         // ----------------------------------------------------

@@ -20,6 +20,126 @@ from difflib import SequenceMatcher
 def check_suspicious_path(process):
     """
     KD-001:
+    Detect executables or scripts running from suspicious
+    Windows user-writable locations.
+
+    The check is based on actual path components rather than
+    simply matching a word anywhere in the path.
+    """
+
+    findings = []
+
+    exe_path = str(
+        process.get("exe", "") or ""
+    )
+
+    cmdline = " ".join(
+        process.get("cmdline", []) or []
+    )
+
+    # --------------------------------------------------------
+    # Normalize Windows paths
+    # --------------------------------------------------------
+
+    exe_normalized = exe_path.replace(
+        "/",
+        "\\"
+    ).lower()
+
+    cmdline_normalized = cmdline.replace(
+        "/",
+        "\\"
+    ).lower()
+
+    # --------------------------------------------------------
+    # Check executable path
+    # --------------------------------------------------------
+
+    matched_locations = []
+
+    for folder in SUSPICIOUS_FOLDERS:
+
+        folder_name = folder.strip(
+            "\\/"
+        ).lower()
+
+        path_parts = [
+            part
+            for part in exe_normalized.split("\\")
+            if part
+        ]
+
+        if folder_name in path_parts:
+
+            matched_locations.append(
+                folder
+            )
+
+    # --------------------------------------------------------
+    # Check command line
+    #
+    # We keep command-line detection because a script or
+    # executable may be referenced there even when the actual
+    # process executable is elsewhere.
+    # --------------------------------------------------------
+
+    command_matches = []
+
+    for folder in SUSPICIOUS_FOLDERS:
+
+        folder_name = folder.strip(
+            "\\/"
+        ).lower()
+
+        if (
+            f"\\{folder_name}\\" in
+            cmdline_normalized
+            or
+            cmdline_normalized.endswith(
+                f"\\{folder_name}"
+            )
+        ):
+
+            command_matches.append(
+                folder
+            )
+
+    # --------------------------------------------------------
+    # Build one KD-001 finding
+    # --------------------------------------------------------
+
+    matched_locations.extend(
+        command_matches
+    )
+
+    # Remove duplicates while preserving order
+    matched_locations = list(
+        dict.fromkeys(
+            matched_locations
+        )
+    )
+
+    if matched_locations:
+
+        rule = RULES["KD-001"]
+
+        findings.append({
+            "id": "KD-001",
+            "rule": rule["name"],
+            "severity": rule["severity"],
+            "description": (
+                "Process references suspicious "
+                "user-writable location(s): "
+                + ", ".join(
+                    matched_locations
+                )
+                + "."
+            )
+        })
+
+    return findings
+    """
+    KD-001:
     Detect executables or scripts running from suspicious locations.
     """
 

@@ -2416,4 +2416,211 @@ footer {
 
     }
 
+
+
+    
+}
+
+/* ============================================================
+   ALL SECURITY DETECTIONS - FILTER CONTROLS
+   ============================================================ */
+
+.detection-filters {
+
+    display: flex;
+
+    align-items: flex-end;
+
+    gap: 20px;
+
+    padding: 18px 22px;
+
+    border-bottom: 1px solid var(--border);
+
+    background: var(--surface);
+
+    flex-wrap: wrap;
+
+}
+
+
+.detection-filter {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+
+}
+
+
+.detection-filter label {
+
+    color: var(--muted);
+
+    font-size: 10px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.7px;
+
+}
+
+
+.detection-filter select,
+.detection-filter input {
+
+    height: 38px;
+
+    padding: 0 12px;
+
+    background: #0f172a;
+
+    color: var(--text);
+
+    border: 1px solid var(--border);
+
+    border-radius: 6px;
+
+    outline: none;
+
+    font-family: inherit;
+
+    font-size: 12px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+
+}
+
+
+.detection-filter select {
+
+    min-width: 160px;
+
+    cursor: pointer;
+
+}
+
+
+.detection-filter input {
+
+    width: 280px;
+
+}
+
+
+.detection-filter select:hover,
+.detection-filter input:hover {
+
+    border-color: #475569;
+
+}
+
+
+.detection-filter select:focus,
+.detection-filter input:focus {
+
+    border-color: var(--blue);
+
+    box-shadow:
+        0 0 0 2px
+        rgba(59, 130, 246, 0.12);
+
+}
+
+
+.detection-filter input::placeholder {
+
+    color: #64748b;
+
+}
+
+
+.detection-filter select option {
+
+    background: #0f172a;
+
+    color: var(--text);
+
+}
+
+
+/* ============================================================
+   DETECTION RESULTS SUMMARY
+   ============================================================ */
+
+.detection-results-summary {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    padding: 14px 22px;
+
+    color: var(--muted);
+
+    font-size: 11px;
+
+}
+
+
+.detection-results-summary strong {
+
+    color: var(--text);
+
+    font-weight: 700;
+
+}
+
+
+/* ============================================================
+   ALL DETECTIONS TABLE
+   ============================================================ */
+
+#all-detections-table {
+
+    width: 100%;
+
+}
+
+
+#all-detections-table td {
+
+    vertical-align: middle;
+
+}
+
+
+/* ============================================================
+   RESPONSIVE FILTERS
+   ============================================================ */
+
+@media (max-width: 900px) {
+
+    .detection-filters {
+
+        align-items: stretch;
+
+        flex-direction: column;
+
+        gap: 14px;
+
+    }
+
+
+    .detection-filter select,
+    .detection-filter input {
+
+        width: 100%;
+
+        min-width: 0;
+
+    }
+
 }

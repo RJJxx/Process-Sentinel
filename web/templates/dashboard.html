@@ -466,7 +466,223 @@
         </section>
 
 
+        <!-- =================================================
+     ALL SECURITY DETECTIONS
+     ================================================= -->
 
+<section
+    class="panel"
+    id="all-detections"
+>
+
+    <div class="panel-header">
+
+        <div>
+
+            <h3>
+                All Security Detections
+            </h3>
+
+            <p>
+                Complete detection history and investigation status
+            </p>
+
+        </div>
+
+        <button
+            id="all-detections-refresh-button"
+            class="refresh-button"
+            type="button"
+        >
+            Refresh
+        </button>
+
+    </div>
+
+
+    <!-- =================================================
+         DETECTION FILTERS
+         ================================================= -->
+
+    <div class="detection-filters">
+
+        <div class="detection-filter">
+
+            <label
+                for="detection-risk-filter"
+            >
+                Risk Level
+            </label>
+
+            <select
+                id="detection-risk-filter"
+            >
+
+                <option value="all">
+                    All Risks
+                </option>
+
+                <option value="Critical">
+                    Critical
+                </option>
+
+                <option value="High">
+                    High
+                </option>
+
+                <option value="Medium">
+                    Medium
+                </option>
+
+                <option value="Low">
+                    Low
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="detection-filter">
+
+            <label
+                for="detection-status-filter"
+            >
+                Investigation Status
+            </label>
+
+            <select
+                id="detection-status-filter"
+            >
+
+                <option value="all">
+                    All Statuses
+                </option>
+
+                <option value="New">
+                    New
+                </option>
+
+                <option value="Investigated">
+                    Investigated
+                </option>
+
+                <option value="Dismissed">
+                    Dismissed
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="detection-filter">
+
+            <label
+                for="detection-search-input"
+            >
+                Search
+            </label>
+
+            <input
+                type="text"
+                id="detection-search-input"
+                placeholder="Search process or event ID..."
+                autocomplete="off"
+            >
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================================
+         DETECTION COUNT
+         ================================================= -->
+
+    <div class="detection-results-summary">
+
+        <span>
+            Showing
+        </span>
+
+        <strong id="all-detections-count">
+            0
+        </strong>
+
+        <span>
+            detections
+        </span>
+
+    </div>
+
+
+    <!-- =================================================
+         ALL DETECTIONS TABLE
+         ================================================= -->
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        PROCESS
+                    </th>
+
+                    <th>
+                        EVENT ID
+                    </th>
+
+                    <th>
+                        RISK
+                    </th>
+
+                    <th>
+                        SCORE
+                    </th>
+
+                    <th>
+                        STATUS
+                    </th>
+
+                    <th>
+                        TIME
+                    </th>
+
+                    <th>
+                        ACTION
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody id="all-detections-table">
+
+                <tr>
+
+                    <td
+                        colspan="7"
+                        class="empty-state"
+                    >
+                        Loading detections...
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
         <!-- =================================================
              CURRENT PROCESSES
              ================================================= -->
@@ -809,6 +1025,156 @@
 
         </div>
 
+
+
+                <!-- =================================================
+             SECURITY INVESTIGATION
+             ================================================= -->
+
+        <div class="modal-section process-investigation-section">
+
+            <h3>
+                Security Investigation
+            </h3>
+
+            <div class="process-investigation-summary">
+
+                <div class="detail-grid">
+
+                    <div class="detail-item">
+
+                        <span class="detail-label">
+                            Risk Level
+                        </span>
+
+                        <span
+                            id="modal-risk-level"
+                            class="detail-value"
+                        >
+                            —
+                        </span>
+
+                    </div>
+
+
+                    <div class="detail-item">
+
+                        <span class="detail-label">
+                            Risk Score
+                        </span>
+
+                        <span
+                            id="modal-risk-score"
+                            class="detail-value"
+                        >
+                            0
+                        </span>
+
+                    </div>
+
+
+                    <div class="detail-item">
+
+                        <span class="detail-label">
+                            Confidence
+                        </span>
+
+                        <span
+                            id="modal-risk-confidence"
+                            class="detail-value"
+                        >
+                            —
+                        </span>
+
+                    </div>
+
+
+                    <div class="detail-item">
+
+                        <span class="detail-label">
+                            Alert
+                        </span>
+
+                        <span
+                            id="modal-alert"
+                            class="detail-value"
+                        >
+                            No
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="investigation-subsection">
+
+                <h4>
+                    Detection Findings
+                </h4>
+
+                <div
+                    id="modal-findings"
+                    class="detection-findings"
+                >
+
+                    <div class="network-empty">
+                        No findings available
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="investigation-subsection">
+
+                <h4>
+                    Evidence
+                </h4>
+
+                <div
+                    id="modal-evidence"
+                    class="detection-findings"
+                >
+
+                    <div class="network-empty">
+                        No evidence available
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="investigation-subsection">
+
+                <h4>
+                    Alert Reason
+                </h4>
+
+                <div
+                    id="modal-alert-reason"
+                    class="code-box"
+                >
+                    No alert reason available.
+                </div>
+
+            </div>
+            <div class="process-investigation-actions">
+
+                 <button
+                     type="button"
+                      id="refresh-process-investigation"
+                     class="investigation-button investigation-investigate"
+                 >
+                      Re-analyze Process
+            </button>
+
+        </div>
+        </div>
     </div>
 
 </div>
