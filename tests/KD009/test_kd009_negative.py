@@ -1,13 +1,13 @@
 from detector.process_analyzer import analyze_process
 
 
-def test_kd008_detects_suspicious_network_activity():
+def test_kd009_does_not_match_partial_folder_name():
     fake_process = {
-        "pid": 9999,
+        "pid": 10001,
         "ppid": 1000,
         "parent_name": "explorer.exe",
-        "name": "test_network_process.exe",
-        "exe": r"C:\Users\ASUS\Downloads\test_network_process.exe",
+        "name": "legitimate_test.exe",
+        "exe": r"C:\Users\ASUS\SomeDownloadsBackup\legitimate_test.exe",
         "cmdline": [],
         "username": "ASUS",
         "status": "running",
@@ -22,7 +22,7 @@ def test_kd008_detects_suspicious_network_activity():
 
     analysis = analyze_process(fake_process)
 
-    assert any(
-        finding["id"] == "KD-008"
+    assert not any(
+        finding["id"] == "KD-009"
         for finding in analysis["findings"]
     )

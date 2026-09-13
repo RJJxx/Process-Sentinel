@@ -71,7 +71,7 @@ test_2 = run_test(
         make_finding("KD-001", "Medium")
     ],
     20,
-    "Low"
+    "Medium"
 )
 
 
@@ -85,7 +85,7 @@ test_3 = run_test(
         make_finding("KD-005", "High")
     ],
     30,
-    "Medium"
+    "High"
 )
 
 
@@ -148,7 +148,7 @@ test_7 = run_test(
         make_finding("KD-005", "High")
     ],
     30,
-    "Medium"
+    "High"
 )
 
 

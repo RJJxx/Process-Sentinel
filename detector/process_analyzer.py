@@ -34,7 +34,7 @@ def check_suspicious_path(process):
     )
 
     cmdline = " ".join(
-        process.get("cmdline", []) or []
+        process.get("cmdline") or []
     )
 
     # --------------------------------------------------------
@@ -138,47 +138,6 @@ def check_suspicious_path(process):
         })
 
     return findings
-    """
-    KD-001:
-    Detect executables or scripts running from suspicious locations.
-    """
-
-    findings = []
-
-    exe_path = process.get("exe", "")
-    cmdline = " ".join(process.get("cmdline", []))
-
-    for folder in SUSPICIOUS_FOLDERS:
-
-        # Check executable path
-        if exe_path and folder.lower() in exe_path.lower():
-
-            rule = RULES["KD-001"]
-
-            findings.append({
-                "id": "KD-001",
-                "rule": rule["name"],
-                "severity": rule["severity"],
-                "description": (
-                    f"Executable is running from '{folder}'."
-                )
-            })
-
-        # Check command line
-        elif cmdline and folder.lower() in cmdline.lower():
-
-            rule = RULES["KD-001"]
-
-            findings.append({
-                "id": "KD-001",
-                "rule": rule["name"],
-                "severity": rule["severity"],
-                "description": (
-                    f"Command line references '{folder}'."
-                )
-            })
-
-    return findings
 
 
 def check_process_name(process):
@@ -189,7 +148,9 @@ def check_process_name(process):
 
     findings = []
 
-    process_name = process.get("name", "").lower()
+    process_name = (
+        process.get("name") or ""
+    ).lower()
 
     for trusted_name in TRUSTED_PROCESS_NAMES:
 
@@ -226,8 +187,11 @@ def check_missing_executable(process):
 
     findings = []
 
-    exe_path = process.get("exe", "")
-    process_name = process.get("name", "").lower()
+    exe_path = process.get("exe", "") or ""
+
+    process_name = (
+        process.get("name") or ""
+    ).lower()
 
     if process_name in SYSTEM_PROCESSES:
         return findings
@@ -257,12 +221,19 @@ def check_suspicious_parent(process):
 
     findings = []
 
-    process_name = process.get("name", "").lower()
-    parent_name = process.get("parent_name", "").lower()
+    process_name = (
+        process.get("name") or ""
+    ).lower()
+
+    parent_name = (
+        process.get("parent_name") or ""
+    ).lower()
 
     if process_name in SUSPICIOUS_PARENT_CHILD:
 
-        suspicious_parents = SUSPICIOUS_PARENT_CHILD[process_name]
+        suspicious_parents = SUSPICIOUS_PARENT_CHILD[
+            process_name
+        ]
 
         if parent_name in suspicious_parents:
 
@@ -289,13 +260,15 @@ def check_suspicious_powershell(process):
 
     findings = []
 
-    process_name = process.get("name", "").lower()
+    process_name = (
+        process.get("name") or ""
+    ).lower()
 
     if process_name != "powershell.exe":
         return findings
 
     cmdline = " ".join(
-        process.get("cmdline", [])
+        process.get("cmdline") or []
     ).lower()
 
     for flag in SUSPICIOUS_POWERSHELL_FLAGS:
@@ -325,10 +298,12 @@ def check_suspicious_lolbin(process):
 
     findings = []
 
-    process_name = process.get("name", "").lower()
+    process_name = (
+        process.get("name") or ""
+    ).lower()
 
     cmdline = " ".join(
-        process.get("cmdline", [])
+        process.get("cmdline") or []
     ).lower()
 
     # Ignore processes that are not in our LOLBin list
@@ -371,7 +346,7 @@ def check_suspicious_command_line(process):
     findings = []
 
     cmdline = " ".join(
-        process.get("cmdline", [])
+        process.get("cmdline") or []
     ).lower()
 
     if not cmdline:
@@ -410,12 +385,13 @@ def check_suspicious_network(process):
 
     findings = []
 
-    process_name = process.get("name", "Unknown")
+    process_name = (
+        process.get("name") or "Unknown"
+    )
 
     connections = process.get(
-        "network_connections",
-        []
-    )
+        "network_connections"
+    ) or []
 
     if not connections:
         return findings
@@ -431,7 +407,7 @@ def check_suspicious_network(process):
         remote_ip = connection.get(
             "remote_ip",
             ""
-        )
+        ) or ""
 
         # Ignore connections without a remote endpoint
         if not remote_ip or not remote_port:
@@ -470,23 +446,46 @@ def check_process_network_correlation(process):
 
     findings = []
 
-    exe_path = process.get("exe", "")
-    process_name = process.get("name", "Unknown")
+    exe_path = (
+        process.get("exe") or ""
+    )
+
+    process_name = (
+        process.get("name") or "Unknown"
+    )
 
     connections = process.get(
-        "network_connections",
-        []
-    )
+        "network_connections"
+    ) or []
 
     # Check whether the executable is in a suspicious folder
     suspicious_location = False
     matched_folder = None
 
+        # Check whether the executable is in a suspicious folder
+    suspicious_location = False
+    matched_folder = None
+
     if exe_path:
+
+        exe_normalized = exe_path.replace(
+            "/",
+            "\\"
+        ).lower()
+
+        path_parts = [
+            part
+            for part in exe_normalized.split("\\")
+            if part
+        ]
 
         for folder in SUSPICIOUS_FOLDERS:
 
-            if folder.lower() in exe_path.lower():
+            folder_name = folder.strip(
+                "\\/"
+            ).lower()
+
+            if folder_name in path_parts:
 
                 suspicious_location = True
                 matched_folder = folder
@@ -504,7 +503,7 @@ def check_process_network_correlation(process):
         remote_ip = connection.get(
             "remote_ip",
             ""
-        )
+        ) or ""
 
         remote_port = connection.get(
             "remote_port"
@@ -513,7 +512,7 @@ def check_process_network_correlation(process):
         status = connection.get(
             "status",
             ""
-        )
+        ) or ""
 
         if (
             remote_ip
@@ -554,21 +553,22 @@ def check_suspicious_persistence(process):
 
     findings = []
 
-    process_name = process.get(
-        "name",
-        "Unknown"
+    process_name = (
+        process.get(
+            "name"
+        ) or "Unknown"
     )
 
-    exe_path = process.get(
-        "exe",
-        ""
+    exe_path = (
+        process.get(
+            "exe"
+        ) or ""
     )
 
     cmdline = " ".join(
         process.get(
-            "cmdline",
-            []
-        )
+            "cmdline"
+        ) or []
     )
 
     combined_data = (
@@ -658,7 +658,12 @@ def calculate_confidence(findings):
         return "Low"
 
     severities = [
-        str(finding.get("severity", "")).lower()
+        str(
+            finding.get(
+                "severity",
+                ""
+            )
+        ).lower()
         for finding in findings
     ]
 

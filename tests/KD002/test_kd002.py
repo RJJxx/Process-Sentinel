@@ -1,18 +1,20 @@
 from detector.process_analyzer import analyze_process
 
-fake_process = {
-    "pid": 8888,
-    "name": "svch0st.exe",          # Notice the zero
-    "exe": r"C:\Windows\System32\svch0st.exe",
-    "cmdline": [],
-    "username": "SYSTEM",
-    "status": "running"
-}
 
-analysis = analyze_process(fake_process)
+def test_kd002_detects_process_name_masquerading():
 
-print("=" * 50)
-print("KD-002 TEST")
-print("=" * 50)
+    fake_process = {
+        "pid": 8888,
+        "name": "svch0st.exe",
+        "exe": r"C:\Windows\System32\svch0st.exe",
+        "cmdline": [],
+        "username": "SYSTEM",
+        "status": "running",
+    }
 
-print(analysis)
+    analysis = analyze_process(fake_process)
+
+    assert any(
+        finding["id"] == "KD-002"
+        for finding in analysis["findings"]
+    )
