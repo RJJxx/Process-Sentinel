@@ -268,6 +268,8 @@ def create_detection_event(alert):
                 "pid"
             ),
 
+            "ppid": process.get("ppid"),
+
             "name": process.get(
                 "name",
                 "Unknown"
